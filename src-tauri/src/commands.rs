@@ -1,60 +1,74 @@
 use std::path::PathBuf;
 use std::process::Command;
 use tauri::Manager;
-use tauri_plugin_dialog::DialogExt;
 
-use crate::config::{profile_to_cfg, Profile};
+use crate::platform;
 
 // ── Launch Hatari ─────────────────────────────────────────────────────────────
 
+/// Write the profile's config into FujiNext's own data folder and start Hatari
+/// with `--configfile`, so the user's real Hatari configuration is never touched.
+///
+/// The config text is built by the frontend (src/hatari/config.ts), which is
+/// the one place that knows Hatari's config format.
 #[tauri::command]
 pub fn launch_hatari(
     hatari_path: String,
-    profile: Profile,
+    profile_id: u64,
+    config_content: String,
     app: tauri::AppHandle,
 ) -> Result<(), String> {
-    let cfg_content = profile_to_cfg(&profile);
+    let config_dir = app.path().app_data_dir()
+        .map_err(|e| format!("Cannot find app data dir: {e}"))?
+        .join("configs");
 
-    // Write to both config locations Hatari checks on macOS
-    let home = std::env::var("HOME")
-        .map_err(|_| "Cannot determine home directory".to_string())?;
+    std::fs::create_dir_all(&config_dir)
+        .map_err(|e| format!("Failed to create config dir: {e}"))?;
 
-    let cfg_locations = vec![
-        std::path::PathBuf::from(&home).join(".config").join("hatari").join("hatari.cfg"),
-        std::path::PathBuf::from(&home).join("Library").join("Application Support").join("Hatari").join("hatari.cfg"),
-    ];
+    let config_path = config_dir.join(format!("profile-{profile_id}.cfg"));
+    std::fs::write(&config_path, config_content)
+        .map_err(|e| format!("Failed to write Hatari config to {:?}: {e}", config_path))?;
 
-    for cfg_path in &cfg_locations {
-        if let Some(parent) = cfg_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create config dir: {e}"))?;
-        }
-        std::fs::write(cfg_path, &cfg_content)
-            .map_err(|e| format!("Failed to write Hatari config to {:?}: {e}", cfg_path))?;
-    }
-
-    let hatari = if hatari_path.is_empty() {
-        detect_hatari_path()
+    let selected = if hatari_path.trim().is_empty() {
+        platform::detect()
     } else {
-        Some(PathBuf::from(&hatari_path))
+        Some(PathBuf::from(hatari_path.trim()))
     };
 
-    let hatari = hatari.ok_or_else(|| {
+    let selected = selected.ok_or_else(|| {
         "Hatari not found. Please set the Hatari path in Settings.".to_string()
     })?;
 
-    // Spawn Hatari detached from our process, with a clean environment
-    // so it doesn't inherit anything from the Tauri dev server context
-    let mut cmd = Command::new(&hatari);
-    cmd.current_dir(&home);
+    // Accepts either the program itself or a macOS Hatari.app bundle.
+    let hatari = platform::resolve_executable(&selected);
+    if !hatari.is_file() {
+        return Err(format!(
+            "Hatari not found at {}. Check the path in Settings.",
+            hatari.display()
+        ));
+    }
 
-    // On macOS, clear DYLD and related env vars that can leak from dev server
-    cmd.env_remove("DYLD_INSERT_LIBRARIES");
-    cmd.env_remove("DYLD_LIBRARY_PATH");
-    cmd.env_remove("DYLD_FRAMEWORK_PATH");
+    let mut cmd = Command::new(&hatari);
+    cmd.arg("--configfile").arg(&config_path);
+
+    // Windows builds of Hatari look for their data files next to the executable.
+    #[cfg(windows)]
+    {
+        if let Some(dir) = hatari.parent() {
+            cmd.current_dir(dir);
+        }
+    }
+
+    // On macOS, clear DYLD variables that can leak in from a dev server.
+    #[cfg(target_os = "macos")]
+    {
+        cmd.env_remove("DYLD_INSERT_LIBRARIES");
+        cmd.env_remove("DYLD_LIBRARY_PATH");
+        cmd.env_remove("DYLD_FRAMEWORK_PATH");
+    }
 
     cmd.spawn()
-        .map_err(|e| format!("Failed to launch Hatari: {e}"))?;
+        .map_err(|e| format!("Failed to launch Hatari ({}): {e}", hatari.display()))?;
 
     Ok(())
 }
@@ -63,53 +77,14 @@ pub fn launch_hatari(
 
 #[tauri::command]
 pub fn detect_hatari() -> Option<String> {
-    detect_hatari_path().map(|p| p.to_string_lossy().to_string())
-}
-
-fn detect_hatari_path() -> Option<PathBuf> {
-    // Common install locations on macOS and Windows
-    let candidates: &[&str] = &[
-        // macOS — Homebrew and app bundle
-        "/usr/local/bin/hatari",
-        "/opt/homebrew/bin/hatari",
-        "/Applications/Hatari.app/Contents/MacOS/hatari",
-        // Windows
-        r"C:\Program Files\Hatari\hatari.exe",
-        r"C:\Program Files (x86)\Hatari\hatari.exe",
-    ];
-
-    for path in candidates {
-        let p = PathBuf::from(path);
-        if p.exists() {
-            return Some(p);
-        }
-    }
-
-    // Fall back to PATH lookup
-    which_hatari()
-}
-
-fn which_hatari() -> Option<PathBuf> {
-    let output = Command::new("which")
-        .arg("hatari")
-        .output()
-        .ok()?;
-
-    if output.status.success() {
-        let path = String::from_utf8(output.stdout).ok()?;
-        let path = path.trim();
-        if !path.is_empty() {
-            return Some(PathBuf::from(path));
-        }
-    }
-    None
+    platform::detect().map(|p| p.to_string_lossy().to_string())
 }
 
 // ── Profile persistence ───────────────────────────────────────────────────────
 
 #[tauri::command]
 pub fn save_profiles(
-    profiles: Vec<Profile>,
+    profiles: Vec<serde_json::Value>,
     app: tauri::AppHandle,
 ) -> Result<(), String> {
     let data_dir = app.path().app_data_dir()
@@ -129,7 +104,7 @@ pub fn save_profiles(
 }
 
 #[tauri::command]
-pub fn load_profiles(app: tauri::AppHandle) -> Result<Vec<Profile>, String> {
+pub fn load_profiles(app: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
     let data_dir = app.path().app_data_dir()
         .map_err(|e| format!("Cannot find app data dir: {e}"))?;
 
@@ -142,7 +117,7 @@ pub fn load_profiles(app: tauri::AppHandle) -> Result<Vec<Profile>, String> {
     let json = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read profiles: {e}"))?;
 
-    let profiles: Vec<Profile> = serde_json::from_str(&json)
+    let profiles: Vec<serde_json::Value> = serde_json::from_str(&json)
         .map_err(|e| format!("Failed to parse profiles: {e}"))?;
 
     Ok(profiles)

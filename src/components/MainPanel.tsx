@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Profile, DetectedRom } from '../types/profile';
+import { toHatariCfg } from '../hatari/config';
 import MachineTab  from './MachineTab';
 import StorageTab  from './StorageTab';
 import DisplayTab  from './DisplayTab';
@@ -36,7 +37,11 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, onChange,
   async function handleLaunch() {
     flash(`Launching ${profile.name}…`);
     try {
-      await invoke('launch_hatari', { hatariPath, profile });
+      await invoke('launch_hatari', {
+        hatariPath,
+        profileId: profile.id,
+        configContent: toHatariCfg(profile),
+      });
       // Update last run timestamp
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
