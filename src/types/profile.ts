@@ -186,7 +186,7 @@ export const TOS_ROMS = [
   { ver: 'TOS 2.06',    machines: ['ST', 'STE', 'MegaSTE'] as MachineType[],           year: '1992', flag: '🇬🇧', note: 'Final 16-bit TOS'                  },
   { ver: 'TOS 3.06',    machines: ['TT'] as MachineType[],                             year: '1992', flag: '🇬🇧', note: 'TT TOS — required'                 },
   { ver: 'TOS 4.04',    machines: ['Falcon'] as MachineType[],                         year: '1993', flag: '🇬🇧', note: 'Falcon TOS — recommended'          },
-  { ver: 'EmuTOS 1.2',  machines: ['ST','STE','MegaSTE','TT','Falcon'] as MachineType[], year: '2022', flag: '🆓', note: 'Open source — all machines'       },
+  { ver: 'EmuTOS',      machines: ['ST','STE','MegaSTE','TT','Falcon'] as MachineType[], year: 'free', flag: '🆓', note: 'Open source — all machines. Version depends on your Hatari or ROM file' },
 ];
 
 export const TTRAM_OPTIONS: TtRamSize[] = [

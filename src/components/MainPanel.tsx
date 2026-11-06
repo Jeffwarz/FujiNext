@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Profile, DetectedRom } from '../types/profile';
 import { toHatariCfg } from '../hatari/config';
+import { resolveTos } from '../hatari/tos';
 import MachineTab  from './MachineTab';
 import StorageTab  from './StorageTab';
 import DisplayTab  from './DisplayTab';
@@ -29,24 +30,33 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, onChange,
   const [activeTab, setActiveTab] = useState<Tab>('machine');
   const [status, setStatus]       = useState('Ready');
 
-  function flash(msg: string) {
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  function flash(msg: string, ms = 2500) {
     setStatus(msg);
-    setTimeout(() => setStatus('Ready'), 2500);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setStatus('Ready'), ms);
   }
 
   async function handleLaunch() {
     flash(`Launching ${profile.name}…`);
+    // A version label like "TOS 4.04" is matched to a real file in the ROMs
+    // folder; Hatari is only ever given a file path.
+    const tos = resolveTos(profile, detectedRoms);
     try {
       await invoke('launch_hatari', {
         hatariPath,
         profileId: profile.id,
-        configContent: toHatariCfg(profile),
+        configContent: toHatariCfg({ ...profile, tosPath: tos.path }),
       });
       // Update last run timestamp
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       onChange({ ...profile, last: `today ${timeStr}` });
-      flash(`Hatari launched — ${profile.name}`);
+      flash(
+        tos.note ? `Hatari launched — ${tos.note}` : `Hatari launched — ${profile.name}`,
+        tos.note ? 12000 : 2500,
+      );
     } catch (err) {
       flash(`Error: ${err}`);
     }

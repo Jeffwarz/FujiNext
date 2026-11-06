@@ -4,6 +4,7 @@ import {
   HW_MAX_LABEL, isExtendedRam,
 } from '../types/profile';
 import { pickFile, ROM_FILTERS } from '../hooks/useFilePicker';
+import { normalizeTosLabel } from '../hatari/tos';
 
 interface Props {
   profile:       Profile;
@@ -230,7 +231,7 @@ export default function MachineTab({ profile: p, detectedRoms, onChange }: Props
           {tosOpts.map(t => (
             <div
               key={t.ver}
-              className={`tos-item ${p.tos === t.ver && !p.tosPath ? 'sel' : ''}`}
+              className={`tos-item ${normalizeTosLabel(p.tos) === normalizeTosLabel(t.ver) && !p.tosPath ? 'sel' : ''}`}
               onClick={() => onChange({ ...p, tos: t.ver, tosPath: '' })}
             >
               <div className="tos-flag">{t.flag}</div>
