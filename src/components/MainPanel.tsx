@@ -97,6 +97,7 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolde
       <div className="tab-content">
         {activeTab === 'machine' && (
           <MachineTab
+            key={profile.id}
             profile={profile}
             detectedRoms={detectedRoms}
             romsFolder={romsFolder}
