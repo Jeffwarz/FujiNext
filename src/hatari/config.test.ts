@@ -109,9 +109,30 @@ describe('machine settings use Hatari codes', () => {
     });
 
   it('writes RAM in KB, ST and TT', () => {
-    const p = { ...makeDefaultProfile(1), ram: '4M' as const, ttram: '64 MiB' as const };
+    const p = { ...makeDefaultProfile(1), machine: 'TT' as const, ram: '4M' as const, ttram: '64 MiB' as const };
     expect(value(p, 'nMemorySize')).toBe('4096');
     expect(value(p, 'nTTRamSize')).toBe('65536');
+  });
+
+  it('turns on 32-bit addressing when a Falcon or TT has TT-RAM', () => {
+    // Without it Hatari warns and leaves the TT-RAM out (seen on a Falcon Dev profile).
+    for (const machine of ['Falcon', 'TT'] as const) {
+      const p = { ...makeDefaultProfile(1), machine, ttram: '64 MiB' as const };
+      expect(value(p, 'bAddressSpace24')).toBe('FALSE');
+      expect(value(p, 'nTTRamSize')).toBe('65536');
+    }
+  });
+
+  it('keeps 24-bit addressing when there is no TT-RAM', () => {
+    expect(value({ ...makeDefaultProfile(1), machine: 'Falcon', ttram: 'None' }, 'bAddressSpace24')).toBe('TRUE');
+  });
+
+  it('ignores TT-RAM on machines that cannot have it', () => {
+    for (const machine of ['ST', 'STE', 'MegaSTE'] as const) {
+      const p = { ...makeDefaultProfile(1), machine, ttram: '64 MiB' as const };
+      expect(value(p, 'nTTRamSize')).toBe('0');
+      expect(value(p, 'bAddressSpace24')).toBe('TRUE');
+    }
   });
 
   it('keeps the 68060 level and FPU codes', () => {
@@ -142,7 +163,9 @@ describe('parseHatariCfg', () => {
     const back = roundTripped(p);
     expect(back).toMatchObject({
       machine: p.machine, cpuType: p.cpuType, cpu: p.cpu, fpu: p.fpu,
-      ram: p.ram, ttram: p.ttram, monitor: p.monitor,
+      ram: p.ram, monitor: p.monitor,
+      // TT-RAM is only written for TT and Falcon
+      ttram: p.machine === 'TT' || p.machine === 'Falcon' ? p.ttram : 'None',
       fullscreen: p.fullscreen, borders: p.borders, aspectRatio: p.aspectRatio, doublePixels: p.doublePixels,
       sound: p.sound, soundFreq: p.soundFreq,
       blitter: p.blitter, timerD: p.timerD, bootFromHd: p.bootFromHd,

@@ -79,12 +79,18 @@ export function toHatariCfg(p: Profile): string {
   const gemdos = text(p.drives.gemdos);
   const tosPath = text(p.tosPath);
 
+  // TT-RAM only exists on TT and Falcon. Hatari needs 32-bit addressing to use it:
+  // on a Falcon with 24-bit addressing it warns and leaves the TT-RAM out.
+  // This is what Hatari's own UI does when TT-RAM is set.
+  const ttRamKb = p.machine === 'TT' || p.machine === 'Falcon' ? (TT_RAM_KB[p.ttram] ?? 0) : 0;
+
   const system: Line[] = [
     ['nModelType', MODEL_CODE[p.machine] ?? 0],
     ['nCpuLevel', CPU_LEVEL[p.cpuType] ?? 0],
     ['nCpuFreq', Number(p.cpu) || 8],
     ['n_FPUType', FPU_CODE[p.fpu] ?? 0],
     ['nDSPType', p.machine === 'Falcon' && p.dsp ? DSP_FULL : DSP_NONE],
+    ['bAddressSpace24', ttRamKb === 0],
     ['bBlitter', p.blitter],
     ['bPatchTimerD', p.timerD],
   ];
@@ -106,7 +112,7 @@ export function toHatariCfg(p: Profile): string {
     ]),
     ...render('Memory', [
       ['nMemorySize', ST_RAM_KB[p.ram] ?? 1024],
-      ['nTTRamSize', TT_RAM_KB[p.ttram] ?? 0],
+      ['nTTRamSize', ttRamKb],
     ]),
     ...render('Floppy', [
       ['EnableDriveA', true],
