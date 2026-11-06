@@ -22,6 +22,7 @@ export default function App() {
   const [settings, setSettings]       = useState<AppSettings>(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
   const [detectedRoms, setDetectedRoms] = useState<DetectedRom[]>([]);
+  const [romScanError, setRomScanError] = useState('');
   const [loaded, setLoaded]           = useState(false);
 
   // On startup: detect Hatari, load saved profiles + settings
@@ -69,13 +70,17 @@ export default function App() {
 
   // Scan ROM folder whenever it changes
   useEffect(() => {
+    setRomScanError('');
     if (!settings.romsFolder) {
       setDetectedRoms([]);
       return;
     }
     invoke<DetectedRom[]>('scan_rom_folder', { folder: settings.romsFolder })
       .then(setDetectedRoms)
-      .catch(() => setDetectedRoms([]));
+      .catch(err => {
+        setDetectedRoms([]);
+        setRomScanError(String(err));
+      });
   }, [settings.romsFolder]);
 
   const activeProfile = profiles.find(p => p.id === activeId) ?? profiles[0];
@@ -133,6 +138,8 @@ export default function App() {
         profile={activeProfile}
         hatariPath={settings.hatariPath}
         detectedRoms={detectedRoms}
+        romsFolder={settings.romsFolder}
+        romScanError={romScanError}
         onChange={updateProfile}
         onDuplicate={() => duplicateProfile(activeProfile.id)}
         onDelete={() => deleteProfile(activeProfile.id)}

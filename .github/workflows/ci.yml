@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Type-check and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      # Hatari detection and ROM identification use only the Rust standard
+      # library, so they can be tested without Tauri's system dependencies.
+      - name: Rust unit tests
+        run: |
+          for m in platform rom; do
+            rustc --edition 2021 --test src-tauri/src/$m.rs -o ${m}_tests
+            ./${m}_tests
+          done
+
+  build:
+    name: Build (${{ matrix.os }})
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npx tauri build --ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fujinext-${{ matrix.os }}
+          path: src-tauri/target/release/bundle/**
+          if-no-files-found: error
