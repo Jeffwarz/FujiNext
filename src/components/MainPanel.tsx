@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Profile, DetectedRom } from '../types/profile';
 import { toHatariCfg } from '../hatari/config';
-import { resolveTos } from '../hatari/tos';
+import { resolveTos, describeTos } from '../hatari/tos';
 import MachineTab  from './MachineTab';
 import StorageTab  from './StorageTab';
 import DisplayTab  from './DisplayTab';
@@ -12,6 +12,8 @@ interface Props {
   profile:       Profile;
   hatariPath:    string;
   detectedRoms:  DetectedRom[];
+  romsFolder:    string;
+  romScanError:  string;
   onChange:      (p: Profile) => void;
   onDuplicate:   () => void;
   onDelete:      () => void;
@@ -26,7 +28,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'sound',   label: 'Sound'   },
 ];
 
-export default function MainPanel({ profile, hatariPath, detectedRoms, onChange, onDuplicate, onDelete }: Props) {
+export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolder, romScanError, onChange, onDuplicate, onDelete }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('machine');
   const [status, setStatus]       = useState('Ready');
 
@@ -43,6 +45,7 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, onChange,
     // A version label like "TOS 4.04" is matched to a real file in the ROMs
     // folder; Hatari is only ever given a file path.
     const tos = resolveTos(profile, detectedRoms);
+    const tosStatus = describeTos(profile, detectedRoms, { romsFolder, scanError: romScanError });
     try {
       await invoke('launch_hatari', {
         hatariPath,
@@ -54,8 +57,8 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, onChange,
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       onChange({ ...profile, last: `today ${timeStr}` });
       flash(
-        tos.note ? `Hatari launched — ${tos.note}` : `Hatari launched — ${profile.name}`,
-        tos.note ? 12000 : 2500,
+        tosStatus.ok ? `Hatari launched — ${profile.name}` : `Hatari launched — ${tosStatus.text}`,
+        tosStatus.ok ? 2500 : 15000,
       );
     } catch (err) {
       flash(`Error: ${err}`);
@@ -96,6 +99,8 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, onChange,
           <MachineTab
             profile={profile}
             detectedRoms={detectedRoms}
+            romsFolder={romsFolder}
+            romScanError={romScanError}
             onChange={p => { onChange(p); flash('Profile updated'); }}
           />
         )}

@@ -4,11 +4,13 @@ import {
   HW_MAX_LABEL, isExtendedRam,
 } from '../types/profile';
 import { pickFile, ROM_FILTERS } from '../hooks/useFilePicker';
-import { normalizeTosLabel } from '../hatari/tos';
+import { normalizeTosLabel, describeTos } from '../hatari/tos';
 
 interface Props {
   profile:       Profile;
   detectedRoms:  DetectedRom[];
+  romsFolder:    string;
+  romScanError:  string;
   onChange:      (p: Profile) => void;
 }
 
@@ -16,7 +18,8 @@ function set<K extends keyof Profile>(p: Profile, key: K, val: Profile[K]): Prof
   return { ...p, [key]: val };
 }
 
-export default function MachineTab({ profile: p, detectedRoms, onChange }: Props) {
+export default function MachineTab({ profile: p, detectedRoms, romsFolder, romScanError, onChange }: Props) {
+  const tosStatus = describeTos(p, detectedRoms, { romsFolder, scanError: romScanError });
   const ramOpts  = RAM_OPTIONS[p.machine];
   const cpuOpts  = CPU_OPTIONS[p.machine];
   const tosOpts  = TOS_ROMS.filter(t => t.machines.includes(p.machine));
@@ -194,6 +197,11 @@ export default function MachineTab({ profile: p, detectedRoms, onChange }: Props
       {/* TOS ROM */}
       <div className="section-label">TOS ROM</div>
       <div className="card">
+
+        {/* What Hatari will actually be given, and why if it isn't the chosen ROM */}
+        <div className={`rom-status ${tosStatus.ok ? 'ok' : 'warn'}`}>
+          {tosStatus.ok ? '✓' : '⚠'} {tosStatus.text}
+        </div>
 
         {/* Detected ROMs from the configured ROMs folder */}
         {relevantDetected.length > 0 && (

@@ -574,3 +574,17 @@ html, body, #root {
 @media (prefers-color-scheme: dark) {
   .rom-found-dot { background: #97C459; }
 }
+/* Which ROM file will load, and why not if it isn't the chosen one */
+.rom-status {
+  font-size: 12px; line-height: 1.45;
+  padding: 8px 10px; margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+.rom-status.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}

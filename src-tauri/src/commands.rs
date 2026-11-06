@@ -182,7 +182,9 @@ pub fn scan_rom_folder(folder: String) -> Result<Vec<DetectedRom>, String> {
             continue;
         }
 
-        let (tos_version, machine) = detect_tos_from_filename(&filename);
+        // Prefer what the file itself says; guess from its name only if that fails.
+        let (tos_version, machine) = identify_rom_file(&entry_path)
+            .unwrap_or_else(|| detect_tos_from_filename(&filename));
 
         detected.push(DetectedRom {
             path:        entry_path.to_string_lossy().to_string(),
@@ -201,6 +203,15 @@ pub fn scan_rom_folder(folder: String) -> Result<Vec<DetectedRom>, String> {
 
 /// Best-effort filename-based TOS detection.
 /// Returns (tos_version, machine_type) where possible.
+/// Read the start of a ROM file and identify it from its header (see rom.rs).
+fn identify_rom_file(path: &std::path::Path) -> Option<(Option<String>, Option<String>)> {
+    use std::io::Read;
+    let mut header = [0u8; crate::rom::HEADER_LEN];
+    std::fs::File::open(path).ok()?.read_exact(&mut header).ok()?;
+    let info = crate::rom::identify(&header)?;
+    Some((Some(info.tos_version), info.machine.map(|m| m.to_string())))
+}
+
 fn detect_tos_from_filename(filename: &str) -> (Option<String>, Option<String>) {
     let lower = filename.to_lowercase();
 

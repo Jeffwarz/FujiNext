@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveTos, isEmuTosLabel, normalizeTosLabel } from './tos';
+import { resolveTos, describeTos, isEmuTosLabel, normalizeTosLabel } from './tos';
 import { makeDefaultProfile } from '../types/profile';
 import type { DetectedRom, Profile } from '../types/profile';
 
@@ -79,5 +79,53 @@ describe('EmuTOS labels', () => {
     expect(isEmuTosLabel('TOS 4.04')).toBe(false);
     expect(normalizeTosLabel('EmuTOS 1.2')).toBe('EmuTOS');
     expect(normalizeTosLabel('TOS 1.04')).toBe('TOS 1.04');
+  });
+});
+
+describe('describeTos', () => {
+  const ctx = { romsFolder: 'C:\\ROMs', scanError: '' };
+
+  it('names the file that will load', () => {
+    const s = describeTos(falcon(), [TOS404], ctx);
+    expect(s.ok).toBe(true);
+    expect(s.text).toContain('TOS404.IMG');
+  });
+
+  it('explains a missing ROMs folder setting', () => {
+    const s = describeTos(falcon(), [], { romsFolder: '', scanError: '' });
+    expect(s.ok).toBe(false);
+    expect(s.text).toContain('No ROMs folder is set');
+    expect(s.text).toContain('Settings');
+  });
+
+  it('explains a folder that could not be read', () => {
+    const s = describeTos(falcon(), [], { romsFolder: 'C:\\gone', scanError: 'Not a directory: C:\\gone' });
+    expect(s.ok).toBe(false);
+    expect(s.text).toContain("couldn't read your ROMs folder");
+    expect(s.text).toContain('Not a directory');
+  });
+
+  it('explains an empty folder', () => {
+    const s = describeTos(falcon(), [], ctx);
+    expect(s.text).toContain('No TOS ROM files were found in C:\\ROMs');
+  });
+
+  it('lists what was found when the version is missing', () => {
+    const s = describeTos(falcon(), [TOS206, MYSTERY], ctx);
+    expect(s.ok).toBe(false);
+    expect(s.text).toContain('tos206us.img is TOS 2.06');
+    expect(s.text).toContain('falcon.img is not recognised');
+  });
+
+  it('says which EmuTOS file stands in', () => {
+    const s = describeTos(falcon(), [TOS206, ETOS], ctx);
+    expect(s.ok).toBe(false);
+    expect(s.text).toContain('etos256us.img');
+  });
+
+  it('is happy with built-in EmuTOS when that is what was chosen', () => {
+    const s = describeTos(falcon({ tos: 'EmuTOS' }), [], ctx);
+    expect(s.ok).toBe(true);
+    expect(s.text).toContain('built-in EmuTOS');
   });
 });

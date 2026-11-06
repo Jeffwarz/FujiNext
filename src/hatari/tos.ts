@@ -58,3 +58,46 @@ export function resolveTos(profile: Profile, roms: DetectedRom[]): TosResolution
           'Choose a ROM under "Detected on disk" to pick a specific file.',
   };
 }
+
+// ── Telling the user what will happen ────────────────────────────────────────
+
+export interface RomContext {
+  /** The ROMs folder from Settings ('' if not set). */
+  romsFolder: string;
+  /** Why scanning that folder failed ('' if it did not). */
+  scanError: string;
+}
+
+export interface TosStatus {
+  /** True when the ROM is the one the user asked for. */
+  ok: boolean;
+  text: string;
+}
+
+const fileName = (path: string): string => path.split(/[\\/]/).pop() || path;
+
+/** One plain sentence on which ROM will load, and if not the chosen one, why. */
+export function describeTos(profile: Profile, roms: DetectedRom[], ctx: RomContext): TosStatus {
+  const r = resolveTos(profile, roms);
+
+  if (r.source === 'chosen') return { ok: true, text: `Will load ${fileName(r.path)}.` };
+  if (r.source === 'matched') return { ok: true, text: `Will load ${fileName(r.path)} (${profile.tos}).` };
+  if (r.source === 'emutos-file' && r.note === '') return { ok: true, text: `Will load the EmuTOS file ${fileName(r.path)}.` };
+  if (isEmuTosLabel(profile.tos)) return { ok: true, text: "Will use Hatari's built-in EmuTOS." };
+
+  let why: string;
+  if (ctx.scanError) {
+    why = `FujiNext couldn't read your ROMs folder (${ctx.scanError}).`;
+  } else if (!ctx.romsFolder.trim()) {
+    why = 'No ROMs folder is set. Choose one in Settings so FujiNext can find your TOS files.';
+  } else if (roms.length === 0) {
+    why = `No TOS ROM files were found in ${ctx.romsFolder}.`;
+  } else {
+    const seen = roms.map(x => `${x.filename}${x.tosVersion ? ` is ${x.tosVersion}` : ' is not recognised'}`).join('; ');
+    why = `${profile.tos} is not among the ROM files in your folder (${seen}).`;
+  }
+  const outcome = r.path
+    ? `Hatari will use EmuTOS (${fileName(r.path)}) instead.`
+    : "Hatari will use its own built-in EmuTOS, or fail to start if it has none.";
+  return { ok: false, text: `${why} ${outcome}` };
+}

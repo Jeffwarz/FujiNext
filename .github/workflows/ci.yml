@@ -18,12 +18,14 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm test
-      # Hatari detection / launch helpers use only the Rust standard library,
-      # so they can be tested without installing Tauri's system dependencies.
-      - name: Rust platform tests
+      # Hatari detection and ROM identification use only the Rust standard
+      # library, so they can be tested without Tauri's system dependencies.
+      - name: Rust unit tests
         run: |
-          rustc --edition 2021 --test src-tauri/src/platform.rs -o platform_tests
-          ./platform_tests
+          for m in platform rom; do
+            rustc --edition 2021 --test src-tauri/src/$m.rs -o ${m}_tests
+            ./${m}_tests
+          done
 
   build:
     name: Build (${{ matrix.os }})
