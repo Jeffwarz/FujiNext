@@ -22,6 +22,6 @@ describe('themes', () => {
     const names = (b: string) => [...b.matchAll(/(--[\w-]+):/g)].map(m => m[1]);
     // The light block only overrides colours; it must not invent variables the base lacks.
     const base = new Set(names(css.split('}')[0]));
-    for (const n of names(block('light'))) expect(base.has(n)).toBe(true);
+    for (const id of ['light', 'gem']) for (const n of names(block(id))) expect(base.has(n)).toBe(true);
   });
 });

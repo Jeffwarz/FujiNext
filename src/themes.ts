@@ -1,10 +1,11 @@
 // The looks FujiNext can wear. Each id has a matching block in themes.css.
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light' | 'gem';
 
 export const THEMES: { id: Theme; label: string }[] = [
   { id: 'dark',  label: 'Dark'  },
   { id: 'light', label: 'Light' },
+  { id: 'gem',   label: 'GEM'   },
 ];
 
 export const DEFAULT_THEME: Theme = 'dark';

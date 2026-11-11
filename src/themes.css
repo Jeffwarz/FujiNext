@@ -4,6 +4,10 @@
 
 :root,
 :root[data-theme="dark"] {
+  --font-display:   var(--font-ui);
+  --shadow-card:    none;
+  --shadow-btn:     none;
+  --radius-pill:    999px;
   --font-ui:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --accent:         #5fe3a8;
   --accent-hover:   #7aeabb;
@@ -59,5 +63,44 @@
   --danger-border:  rgba(179,38,30,0.35);
   --danger-hover:   rgba(179,38,30,0.07);
   --shadow-menu:    0 8px 24px rgba(20,30,50,0.18);
+  color-scheme: light;
+}
+
+/* Chunky GEM: black on white, thick borders, hard shadows, pixel fonts, a
+   dithered green desktop. Structure that only this look needs is in App.css
+   under :root[data-theme="gem"]. */
+:root[data-theme="gem"] {
+  --font-ui:        'Pixelify Sans', 'Courier New', monospace;
+  --font-display:   'Press Start 2P', 'Pixelify Sans', monospace;
+  --accent:         #000000;
+  --accent-hover:   #333333;
+  --accent-light:   #000000;
+  --accent-contrast:#ffffff;
+  --bg-primary:     #ffffff;
+  --bg-secondary:   #ffffff;
+  --bg-tertiary:    #55aa88;
+  --sidebar-bg:     #ffffff;
+  --text-primary:   #000000;
+  --text-secondary: #000000;
+  --text-tertiary:  #333333;
+  --border:         #000000;
+  --border-mid:     #000000;
+  --bw:             3px;
+  --radius-sm:      0;
+  --radius-md:      0;
+  --radius-lg:      0;
+  --radius-pill:    0;
+  --shadow-card:    4px 4px 0 #000;
+  --shadow-btn:     3px 3px 0 #000;
+  --ok:             #000000;
+  --pill-bg:        #ffffff;
+  --pill-text:      #000000;
+  --warn-bg:        #ffffff;
+  --warn-border:    #000000;
+  --warn-text:      #000000;
+  --danger-text:    #000000;
+  --danger-border:  #000000;
+  --danger-hover:   #dddddd;
+  --shadow-menu:    5px 5px 0 #000;
   color-scheme: light;
 }
