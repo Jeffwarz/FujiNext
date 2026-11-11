@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { THEMES, normalizeTheme } from '../themes';
 import { invoke } from '@tauri-apps/api/core';
 import { AppSettings } from '../types/profile';
 import { pickFile, pickFolder } from '../hooks/useFilePicker';
@@ -110,11 +111,10 @@ export default function SettingsModal({ settings, onSave, onClose, onResetDemos 
               </div>
               <select
                 className="form-select"
-                value={draft.theme}
-                onChange={e => setDraft({ ...draft, theme: e.target.value as 'light' | 'dark' })}
+                value={normalizeTheme(draft.theme)}
+                onChange={e => setDraft({ ...draft, theme: normalizeTheme(e.target.value) })}
               >
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
+                {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
               </select>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { Profile, MachineType, makeDefaultProfile } from '../types/profile';
 import { TOS_ROMS } from '../types/profile';
 import { DEMO_PROFILE_IDS } from '../demoProfiles';
 import { profileSpec } from '../profileSummary';
+import { THEMES, type Theme } from '../themes';
 
 interface Props {
   profiles:       Profile[];
@@ -14,6 +15,8 @@ interface Props {
   onRename:       (id: number, name: string) => void;
   onDelete:       (id: number) => void;
   onRestore:      (id: number) => void;
+  theme:          Theme;
+  onThemeChange:  (t: Theme) => void;
   onOpenSettings: () => void;
 }
 
@@ -25,7 +28,7 @@ const BADGE_LABEL: Record<MachineType, string> = {
   Falcon:  'Falcon',
 };
 
-export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport, onDuplicate, onRename, onDelete, onRestore, onOpenSettings }: Props) {
+export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport, onDuplicate, onRename, onDelete, onRestore, theme, onThemeChange, onOpenSettings }: Props) {
   const [filter, setFilter]           = useState('');
   const [importMsg, setImportMsg]   = useState('');
   const [showWizard, setShowWizard]   = useState(false);
@@ -135,6 +138,21 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport,
 
         {/* Footer */}
         <div className="sidebar-footer">
+          <div className="look-switch" role="radiogroup" aria-label="Look">
+            <span className="look-label">Look</span>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={theme === t.id}
+                className={`look-opt ${theme === t.id ? 'sel' : ''}`}
+                onClick={() => onThemeChange(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="btn-new" onClick={() => setShowWizard(true)} style={{ flex: 1 }}>
               + New profile

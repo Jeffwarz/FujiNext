@@ -603,3 +603,16 @@ html, body, #root {
 .tab { padding: 10px 14px; font-weight: 600; }
 .tab-inner { padding: 20px 28px; }
 .status-bar { background: var(--sidebar-bg); }
+
+/* ── Look switcher (sidebar footer) ───────────────────────────────────────── */
+.look-switch { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.look-label  { font-size: 12px; color: var(--text-tertiary); margin-right: auto; }
+.look-opt {
+  padding: 4px 12px; font: inherit; font-size: 12px; font-weight: 600;
+  border-radius: 999px; cursor: pointer;
+  border: var(--bw) solid var(--border-mid);
+  background: var(--bg-primary); color: var(--text-secondary);
+}
+.look-opt:hover { border-color: var(--accent); }
+.look-opt.sel { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.look-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

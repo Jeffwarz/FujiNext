@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { normalizeTheme, type Theme } from './themes';
 import { importHatariCfg } from './hatari/importCfg';
 import { pickFile } from './hooks/useFilePicker';
 import { Profile, AppSettings, DetectedRom, normalizeProfile } from './types/profile';
@@ -103,7 +104,7 @@ export default function App() {
 
   // The look follows the Settings choice ('dark' and 'light' are the modern looks).
   useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = normalizeTheme(settings.theme);
   }, [settings.theme]);
 
   const activeProfile = profiles.find(p => p.id === activeId) ?? profiles[0];
@@ -175,6 +176,8 @@ export default function App() {
         onRename={renameProfile}
         onDelete={deleteProfile}
         onRestore={restoreOne}
+        theme={normalizeTheme(settings.theme)}
+        onThemeChange={(theme: Theme) => setSettings(prev => ({ ...prev, theme }))}
         onOpenSettings={() => setShowSettings(true)}
       />
       <MainPanel

@@ -1,3 +1,4 @@
+import type { Theme } from '../themes';
 export type MachineType = 'ST' | 'STE' | 'MegaSTE' | 'TT' | 'Falcon';
 
 export type CpuSpeed = '8' | '16' | '32';
@@ -100,7 +101,7 @@ export interface AppSettings {
   hatariPath:     string;   // path to hatari binary
   romsFolder:     string;   // folder scanned for TOS ROMs
   floppyFolder:   string;   // default floppy image folder
-  theme:          'dark' | 'light';
+  theme:          Theme;
 }
 
 export interface DetectedRom {
