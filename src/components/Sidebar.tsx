@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Profile, MachineType, makeDefaultProfile } from '../types/profile';
 import { TOS_ROMS } from '../types/profile';
+import { DEMO_PROFILE_IDS } from '../demoProfiles';
 
 interface Props {
   profiles:       Profile[];
@@ -10,6 +11,7 @@ interface Props {
   onDuplicate:    (id: number) => void;
   onRename:       (id: number, name: string) => void;
   onDelete:       (id: number) => void;
+  onRestore:      (id: number) => void;
   onOpenSettings: () => void;
 }
 
@@ -29,7 +31,7 @@ const BADGE_LABEL: Record<MachineType, string> = {
   Falcon:  'Falcon',
 };
 
-export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplicate, onRename, onDelete, onOpenSettings }: Props) {
+export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplicate, onRename, onDelete, onRestore, onOpenSettings }: Props) {
   const [filter, setFilter]           = useState('');
   const [showWizard, setShowWizard]   = useState(false);
   const [editingId, setEditingId]     = useState<number | null>(null);
@@ -177,6 +179,12 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               onDuplicate(contextMenu.id);
               closeContextMenu();
             }}>Duplicate</div>
+            {DEMO_PROFILE_IDS.includes(contextMenu.id) && (
+              <div className="context-item" onClick={() => {
+                onRestore(contextMenu.id);
+                closeContextMenu();
+              }}>Restore original setup</div>
+            )}
             <div className="context-divider" />
             <div className="context-item danger" onClick={() => {
               onDelete(contextMenu.id);

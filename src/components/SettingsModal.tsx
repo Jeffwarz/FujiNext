@@ -124,10 +124,11 @@ export default function SettingsModal({ settings, onSave, onClose, onResetDemos 
           <div className="card">
             <div className="toggle-row" style={{ borderBottom: 'none', padding: '4px 0' }}>
               <div style={{ flex: 1 }}>
-                <span className="toggle-label">Reset demo profiles</span>
+                <span className="toggle-label">Restore ready-made profiles</span>
                 <div className="toggle-note">
-                  Restore Gaming ST, Mega STE Office, Falcon Dev, TT Max and Upgraded STE to defaults.
-                  Your own profiles will be kept untouched.
+                  Put all the ready-made profiles back to their original setups, and bring back any you deleted.
+                  Profiles you created, duplicated or imported are never changed.
+                  To restore just one, right-click it in the list.
                 </div>
               </div>
               {!confirmReset ? (
