@@ -1,0 +1,56 @@
+name: Release
+
+# Builds the macOS and Windows installers and attaches them to a DRAFT release,
+# so you can look it over and press Publish yourself.
+#
+# Start it from the Actions tab: Release -> Run workflow -> type a version such
+# as v1.0.0. (Pushing a tag that starts with "v" does the same.)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag for the release, for example v1.0.0'
+        required: true
+        default: 'v1.0.0'
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm test
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ inputs.tag || github.ref_name }}
+          releaseName: 'FujiNext ${{ inputs.tag || github.ref_name }}'
+          releaseBody: |
+            Installers for macOS (Apple Silicon) and Windows.
+
+            **macOS:** open the .dmg and drag FujiNext into Applications. The first time, right-click the app and choose Open (or use System Settings > Privacy & Security > Open Anyway).
+            **Windows:** run the installer. If Windows warns about an unknown publisher, choose More info, then Run anyway.
+
+            FujiNext needs Hatari installed. See the README for setup.
+          releaseDraft: true
+          prerelease: false

@@ -3,6 +3,8 @@
 A profile manager and launcher for the [Hatari](https://hatari.tuxfamily.org/) Atari ST/STE/TT/Falcon emulator.
 Pick a machine, point it at your ROM and disks, press **Launch**. Runs on macOS and Windows.
 
+Download the latest installers from the [Releases page](https://github.com/Jeffwarz/FujiNext/releases).
+
 FujiNext is only a front end: it never changes how Hatari itself works. It writes a Hatari
 config file for the selected profile and starts Hatari with `--configfile`, so your own Hatari
 configuration is left alone.
@@ -15,6 +17,11 @@ configuration is left alone.
 4. Pick one of the starter profiles or make your own, then **Launch**.
 
 Profiles and settings are saved as JSON in the app's data folder.
+
+## Releasing
+
+In GitHub, open **Actions → Release → Run workflow**, type a version such as `v1.0.0` and run it.
+The macOS and Windows installers are attached to a draft release; check it, then press **Publish release**.
 
 ## Development
 
@@ -54,7 +61,7 @@ npm test
 
 ## Legal
 
-Copyright (c) 2026 Jeffwarz. FujiNext™ is a trademark of Jeffwarz.
+FujiNext is released under the [MIT License](LICENSE). Copyright (c) 2025 Jeff Warz. FujiNext™ is a trademark of Jeff Warz.
 
 FujiNext™ is an independent open source project and is not affiliated with, endorsed by, or
 associated with the Hatari development team or its contributors. Hatari is a separate open source
