@@ -8,6 +8,7 @@ interface Props {
   activeId:       number;
   onSelect:       (id: number) => void;
   onAdd:          (p: Profile) => void;
+  onImport:       () => Promise<string>;
   onDuplicate:    (id: number) => void;
   onRename:       (id: number, name: string) => void;
   onDelete:       (id: number) => void;
@@ -31,8 +32,9 @@ const BADGE_LABEL: Record<MachineType, string> = {
   Falcon:  'Falcon',
 };
 
-export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplicate, onRename, onDelete, onRestore, onOpenSettings }: Props) {
+export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport, onDuplicate, onRename, onDelete, onRestore, onOpenSettings }: Props) {
   const [filter, setFilter]           = useState('');
+  const [importMsg, setImportMsg]   = useState('');
   const [showWizard, setShowWizard]   = useState(false);
   const [editingId, setEditingId]     = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -147,6 +149,18 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               ⚙
             </button>
           </div>
+          <button
+            className="btn-new"
+            style={{ width: '100%', marginTop: 6 }}
+            title="Create a profile from an existing Hatari .cfg file"
+            onClick={async () => {
+              const msg = await onImport();
+              if (msg) { setImportMsg(msg); setTimeout(() => setImportMsg(''), 12000); }
+            }}
+          >
+            Import .cfg file…
+          </button>
+          {importMsg && <div className="field-hint" style={{ marginTop: 6 }} role="status">{importMsg}</div>}
           <div className="sidebar-copyright">
             <div className="copyright-name">FujiNext™ <span className="copyright-version">v1.0</span></div>
             <div className="copyright-owner">© 2025 Jeff Warz</div>

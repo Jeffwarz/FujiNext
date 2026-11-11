@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { importHatariCfg } from './hatari/importCfg';
+import { pickFile } from './hooks/useFilePicker';
 import { Profile, AppSettings, DetectedRom, normalizeProfile } from './types/profile';
 import { DEMO_PROFILES, DEMO_PROFILE_IDS, resetDemoProfiles, restoreDemoProfile, addNewDemoProfiles } from './demoProfiles';
 import Sidebar from './components/Sidebar';
@@ -110,6 +112,20 @@ export default function App() {
     setActiveId(p.id);
   }
 
+  /** Returns a sentence for the user, or '' if they cancelled. */
+  async function importCfg(): Promise<string> {
+    const path = await pickFile('Import a Hatari config file', [{ name: 'Hatari config', extensions: ['cfg'] }]);
+    if (!path) return '';
+    try {
+      const text = await invoke<string>('read_text_file', { path });
+      const result = importHatariCfg(text, path, Date.now());
+      if (result.profile) addProfile(result.profile);
+      return result.message;
+    } catch (err) {
+      return `Couldn't import that file: ${err}`;
+    }
+  }
+
   function duplicateProfile(id: number) {
     const src = profiles.find(p => p.id === id);
     if (!src) return;
@@ -149,6 +165,7 @@ export default function App() {
         activeId={activeId}
         onSelect={setActiveId}
         onAdd={addProfile}
+        onImport={importCfg}
         onDuplicate={duplicateProfile}
         onRename={renameProfile}
         onDelete={deleteProfile}
