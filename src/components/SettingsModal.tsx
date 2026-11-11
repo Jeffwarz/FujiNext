@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { THEMES, normalizeTheme } from '../themes';
 import { invoke } from '@tauri-apps/api/core';
 import { AppSettings } from '../types/profile';
 import { pickFile, pickFolder } from '../hooks/useFilePicker';
@@ -106,15 +107,14 @@ export default function SettingsModal({ settings, onSave, onClose, onResetDemos 
             <div className="toggle-row" style={{ borderBottom: 'none', padding: '4px 0' }}>
               <div>
                 <span className="toggle-label">Theme</span>
-                <div className="toggle-note">Follows system by default</div>
+                <div className="toggle-note">Choose how FujiNext looks</div>
               </div>
               <select
                 className="form-select"
-                value={draft.theme}
-                onChange={e => setDraft({ ...draft, theme: e.target.value as 'light' | 'dark' })}
+                value={normalizeTheme(draft.theme)}
+                onChange={e => setDraft({ ...draft, theme: normalizeTheme(e.target.value) })}
               >
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
+                {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
               </select>
             </div>
           </div>
@@ -124,10 +124,11 @@ export default function SettingsModal({ settings, onSave, onClose, onResetDemos 
           <div className="card">
             <div className="toggle-row" style={{ borderBottom: 'none', padding: '4px 0' }}>
               <div style={{ flex: 1 }}>
-                <span className="toggle-label">Reset demo profiles</span>
+                <span className="toggle-label">Restore ready-made profiles</span>
                 <div className="toggle-note">
-                  Restore Gaming ST, Mega STE Office, Falcon Dev, TT Max and Upgraded STE to defaults.
-                  Your own profiles will be kept untouched.
+                  Put all the ready-made profiles back to their original setups, and bring back any you deleted.
+                  Profiles you created, duplicated or imported are never changed.
+                  To restore just one, right-click it in the list.
                 </div>
               </div>
               {!confirmReset ? (

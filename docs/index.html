@@ -1,428 +1,445 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FujiNext™ — The Hatari Frontend</title>
-<meta name="description" content="FujiNext™ is the friendly, intuitive frontend for Hatari — a precision-crafted profile manager, hardware configurator, and launcher for your Atari ST, STE, Mega ST, and Falcon 030 machines. Free and open source for Windows, macOS, and Linux.">
-<meta property="og:title" content="FujiNext™ — The Hatari Frontend">
-<meta property="og:description" content="Every detail. Every machine. Every era. Free and open source.">
-<meta property="og:type" content="website">
-<meta name="theme-color" content="#B85C20">
-<link rel="icon" type="image/png" href="icon-32.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FujiNext™ — a friendly front end for Hatari</title>
+<meta name="description" content="FujiNext™ is a friendly front end for the Hatari Atari ST emulator: ready-made profiles, TOS ROM detection, joysticks and devices, and three looks to choose from. For macOS and Windows.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+<script>
+  // Pick the look before the page paints: saved choice, else the visitor's system setting.
+  (function () {
+    var t = 'dark';
+    try {
+      var saved = localStorage.getItem('fujinext-look');
+      if (saved === 'dark' || saved === 'light' || saved === 'gem') t = saved;
+      else if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) t = 'light';
+    } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap');
+/* ── The three looks (same ones as the app) ─────────────────────────────── */
+:root, :root[data-theme="dark"] {
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-ui);
+  --accent: #5fe3a8; --accent-hover: #7aeabb; --accent-soft: #1d2a33; --accent-contrast: #06231a;
+  --bg: #12151c; --surface: #171b24; --surface-2: #1e2330;
+  --text: #e8ebf2; --text-2: #b4bcd0; --text-3: #98a2b8;
+  --line: #262c3a; --line-2: #343c50;
+  --bw: 1px; --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-pill: 999px;
+  --shadow-card: none; --shadow-btn: none;
+  --sun: #ffb454;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --accent: #0f7a52; --accent-hover: #0b6342; --accent-soft: #e3f5ec; --accent-contrast: #ffffff;
+  --bg: #eceff5; --surface: #ffffff; --surface-2: #f4f6fa;
+  --text: #161a22; --text-2: #475069; --text-3: #5c667d;
+  --line: #dde2ec; --line-2: #c5ccdb;
+  --sun: #d9730d;
+  color-scheme: light;
+}
+:root[data-theme="gem"] {
+  --font-ui: 'Pixelify Sans', 'Courier New', monospace;
+  --font-display: 'Press Start 2P', 'Pixelify Sans', monospace;
+  --accent: #000; --accent-hover: #333; --accent-soft: #000; --accent-contrast: #fff;
+  --bg: #55aa88; --surface: #fff; --surface-2: #fff;
+  --text: #000; --text-2: #000; --text-3: #222;
+  --line: #000; --line-2: #000;
+  --bw: 3px; --r-sm: 0; --r-md: 0; --r-lg: 0; --r-pill: 0;
+  --shadow-card: 6px 6px 0 #000; --shadow-btn: 4px 4px 0 #000;
+  --sun: #000;
+  color-scheme: light;
+}
 
-  :root {
-    --forge-orange: #B85C20;
-    --forge-orange-bright: #D4692A;
-    --forge-amber: #E8A040;
-    --forge-dark: #0D0C0A;
-    --forge-charcoal: #1A1815;
-    --forge-panel: #221F1C;
-    --forge-beige: #C8B89A;
-    --forge-cream: #F0E8D8;
-    --forge-scan: rgba(255,255,255,0.03);
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+body {
+  font-family: var(--font-ui); font-size: 16px; line-height: 1.6;
+  color: var(--text); background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-theme="gem"] body {
+  font-size: 19px;
+  background-color: #55aa88;
+  background-image: repeating-conic-gradient(#55aa88 0% 25%, #3f8f6e 0% 50%);
+  background-size: 4px 4px;
+}
+a { color: var(--accent); }
+:root[data-theme="gem"] a { color: #000; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+:root[data-theme="gem"] :focus-visible { outline-color: #000; }
+img { max-width: 100%; height: auto; display: block; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+section { padding: 72px 0; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; letter-spacing: -0.02em; }
+:root[data-theme="gem"] h1, :root[data-theme="gem"] h2, :root[data-theme="gem"] h3 { letter-spacing: 0; line-height: 1.45; }
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+:root[data-theme="gem"] .eyebrow { color: #000; font-family: var(--font-display); font-size: 10px; background: #fff; display: inline-block; padding: 4px 8px; border: 3px solid #000; }
+h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 14px; }
+:root[data-theme="gem"] h2 { font-size: clamp(16px, 2.6vw, 24px); background: #fff; border: 3px solid #000; box-shadow: 6px 6px 0 #000; padding: 12px 16px; display: inline-block; }
+.lead { color: var(--text-2); max-width: 640px; font-size: 18px; }
+:root[data-theme="gem"] .lead { background: #fff; border: 3px solid #000; padding: 10px 14px; margin-top: 14px; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+/* ── Nav ──────────────────────────────────────────────────────────────── */
+nav { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: var(--bw) solid var(--line); }
+.nav-in { max-width: 1120px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text) !important; font-weight: 700; font-size: 18px; font-family: var(--font-display); }
+:root[data-theme="gem"] .brand { font-size: 12px; }
+.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.nav-links { display: flex; gap: 20px; list-style: none; margin-left: 8px; flex-wrap: wrap; }
+.nav-links a { text-decoration: none; color: var(--text-2); font-weight: 500; }
+:root[data-theme="gem"] .nav-links a { color: #000; }
+.nav-links a:hover { color: var(--accent); text-decoration: underline; }
+.look { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.look-label { font-size: 13px; color: var(--text-3); margin-right: 4px; }
+.look button {
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 5px 14px; border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line-2); background: var(--surface); color: var(--text-2);
+}
+.look button:hover { border-color: var(--accent); }
+.look button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+:root[data-theme="gem"] .look button[aria-pressed="true"] { background: #000; color: #fff; }
 
-  body {
-    background: var(--forge-dark);
-    color: var(--forge-cream);
-    font-family: 'Outfit', sans-serif;
-    overflow-x: hidden;
-    cursor: crosshair;
-  }
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+  font: inherit; font-weight: 700; cursor: pointer;
+  padding: 13px 24px; border-radius: var(--r-md);
+  border: var(--bw) solid var(--accent); background: var(--accent); color: var(--accent-contrast) !important;
+  box-shadow: var(--shadow-btn);
+}
+.btn:hover { background: var(--accent-hover); }
+.btn.ghost { background: var(--surface); color: var(--text) !important; border-color: var(--line-2); }
+.btn.ghost:hover { border-color: var(--accent); background: var(--surface-2); }
+:root[data-theme="gem"] .btn.ghost:hover { background: #000; color: #fff !important; }
+:root[data-theme="gem"] .btn { font-family: var(--font-display); font-size: 12px; }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--forge-scan) 2px, var(--forge-scan) 4px);
-    pointer-events: none;
-    z-index: 9999;
-  }
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.hero { padding: 72px 0 40px; }
+.hero h1 { font-size: clamp(34px, 6vw, 60px); margin-bottom: 18px; max-width: 820px; }
+:root[data-theme="gem"] .hero h1 { font-size: clamp(20px, 4vw, 34px); background: #fff; border: 3px solid #000; box-shadow: 6px 6px 0 #000; padding: 16px 20px; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+:root[data-theme="gem"] .hero h1 em { color: #000; text-decoration: underline; }
+.hero .lead { margin-bottom: 28px; }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.hero-note { font-size: 14px; color: var(--text-3); }
+:root[data-theme="gem"] .hero-note { background: #fff; border: 3px solid #000; display: inline-block; padding: 4px 10px; color: #000; }
+.shot { margin-top: 44px; border: var(--bw) solid var(--line-2); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-card); }
+:root[data-theme="light"] .shot { box-shadow: 0 20px 50px rgba(20, 30, 50, 0.15); }
+:root[data-theme="dark"] .shot { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+.shot img { width: 100%; height: auto; }
+.shot-cap { font-size: 13px; color: var(--text-3); margin-top: 12px; text-align: center; }
+:root[data-theme="gem"] .shot-cap { color: #000; background: #fff; border: 3px solid #000; display: table; margin: 14px auto 0; padding: 2px 10px; }
 
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 3rem;
-    background: linear-gradient(to bottom, rgba(13,12,10,0.95), transparent);
-    backdrop-filter: blur(2px);
-  }
+/* ── Machines strip ───────────────────────────────────────────────────── */
+.strip { border-top: var(--bw) solid var(--line); border-bottom: var(--bw) solid var(--line); background: var(--surface); padding: 18px 0; }
+.strip ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; font-weight: 600; color: var(--text-2); }
+:root[data-theme="gem"] .strip ul { color: #000; }
+.strip li::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 10px; }
+:root[data-theme="gem"] .strip li::before { border-radius: 0; }
 
-  .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-  .fuji-icon { width: 32px; height: 32px; }
-  .nav-brand { font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--forge-cream); letter-spacing: 0.05em; }
-  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
-  .nav-links a { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forge-beige); text-decoration: none; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--forge-orange-bright); }
-  .nav-cta { font-family: 'Space Mono', monospace; font-size: 0.75rem; padding: 0.5rem 1.25rem; border: 1px solid var(--forge-orange); color: var(--forge-orange); background: transparent; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; font-weight: 700; }
-  .nav-cta:hover { background: var(--forge-orange); color: var(--forge-dark); }
+/* ── Cards / grids ────────────────────────────────────────────────────── */
+.grid { display: grid; gap: 16px; margin-top: 34px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.card { background: var(--surface); border: var(--bw) solid var(--line); border-radius: var(--r-lg); padding: 22px; box-shadow: var(--shadow-card); }
+.card h3 { font-size: 17px; margin-bottom: 8px; }
+:root[data-theme="gem"] .card h3 { font-size: 12px; }
+.card p { color: var(--text-2); font-size: 15px; }
+.num { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; font-family: var(--font-display); }
+:root[data-theme="gem"] .num { color: #000; }
 
-  .hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: var(--forge-dark); }
-  .hero-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 60%, rgba(184,92,32,0.12) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 20% 80%, rgba(232,160,64,0.06) 0%, transparent 60%), radial-gradient(ellipse 30% 50% at 80% 20%, rgba(184,92,32,0.05) 0%, transparent 60%); animation: glowPulse 6s ease-in-out infinite alternate; }
-  @keyframes glowPulse { 0% { opacity: 0.8; } 100% { opacity: 1.2; } }
-  .hero-grid { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background-image: linear-gradient(rgba(184,92,32,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(184,92,32,0.15) 1px, transparent 1px); background-size: 60px 60px; transform: perspective(600px) rotateX(60deg); transform-origin: bottom; opacity: 0.5; }
-  .hero-fragments { position: absolute; inset: 0; pointer-events: none; }
-  .fragment { position: absolute; border: 1px solid rgba(184,92,32,0.3); animation: floatFrag linear infinite; opacity: 0; }
-  .fragment:nth-child(1) { width: 60px; height: 40px; top: 15%; left: 8%; animation-duration: 20s; animation-delay: 0s; }
-  .fragment:nth-child(2) { width: 40px; height: 40px; top: 30%; right: 10%; animation-duration: 25s; animation-delay: -5s; }
-  .fragment:nth-child(3) { width: 80px; height: 20px; top: 60%; left: 12%; animation-duration: 18s; animation-delay: -8s; }
-  .fragment:nth-child(4) { width: 30px; height: 50px; top: 20%; right: 20%; animation-duration: 22s; animation-delay: -12s; }
-  .fragment:nth-child(5) { width: 50px; height: 30px; top: 70%; right: 15%; animation-duration: 28s; animation-delay: -3s; }
-  @keyframes floatFrag { 0% { opacity: 0; transform: translateY(20px) rotate(0deg); } 10% { opacity: 0.4; } 90% { opacity: 0.4; } 100% { opacity: 0; transform: translateY(-40px) rotate(15deg); } }
-  .hero-fuji-bg { position: absolute; width: 600px; height: 600px; opacity: 0.04; animation: slowSpin 120s linear infinite; }
-  @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .hero-content { position: relative; z-index: 2; text-align: center; max-width: 900px; padding: 0 2rem; }
-  .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--forge-orange); border: 1px solid rgba(184,92,32,0.4); padding: 0.35rem 0.9rem; margin-bottom: 2rem; animation: fadeInUp 0.8s ease forwards; opacity: 0; }
-  .badge-dot { width: 6px; height: 6px; background: var(--forge-orange); border-radius: 50%; animation: blink 1.5s ease-in-out infinite; }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-  .hero-title { font-family: 'DM Serif Display', serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 0.95; font-weight: 400; color: var(--forge-cream); margin-bottom: 0.5rem; animation: fadeInUp 0.8s ease 0.2s forwards; opacity: 0; }
-  .hero-title em { font-style: italic; color: var(--forge-orange); }
-  .hero-sub { font-family: 'Space Mono', monospace; font-size: clamp(0.65rem, 1.2vw, 0.8rem); letter-spacing: 0.25em; text-transform: uppercase; color: var(--forge-beige); margin-bottom: 2.5rem; animation: fadeInUp 0.8s ease 0.4s forwards; opacity: 0; }
-  .hero-desc { font-size: 1rem; font-weight: 300; color: rgba(240,232,216,0.65); line-height: 1.8; max-width: 540px; margin: 0 auto 3rem; animation: fadeInUp 0.8s ease 0.6s forwards; opacity: 0; }
-  .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.8s forwards; opacity: 0; }
-  .btn-primary { font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.9rem 2.5rem; background: var(--forge-orange); color: var(--forge-dark); border: none; cursor: pointer; transition: all 0.2s; }
-  .btn-primary:hover { background: var(--forge-orange-bright); transform: translateY(-2px); }
-  .btn-secondary { font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.9rem 2.5rem; background: transparent; color: var(--forge-beige); border: 1px solid rgba(200,184,154,0.3); cursor: pointer; transition: all 0.2s; }
-  .btn-secondary:hover { border-color: var(--forge-beige); color: var(--forge-cream); }
-  .hero-scroll { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; opacity: 0; animation: fadeInUp 1s ease 1.5s forwards, bounce 2s ease-in-out 2.5s infinite; }
-  .scroll-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--forge-beige); }
-  .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--forge-orange), transparent); }
-  @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Machine tabs ─────────────────────────────────────────────────────── */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 30px 0 18px; }
+.tab { font: inherit; font-weight: 600; cursor: pointer; padding: 9px 18px; border-radius: var(--r-md); border: var(--bw) solid var(--line-2); background: var(--surface); color: var(--text-2); }
+.tab:hover { border-color: var(--accent); }
+.tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+:root[data-theme="gem"] .tab[aria-selected="true"] { background: #000; color: #fff; }
+.panel { display: none; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.panel.on { display: grid; }
+.panel .info { background: var(--surface); border: var(--bw) solid var(--line); border-radius: var(--r-lg); padding: 26px; box-shadow: var(--shadow-card); }
+.panel .year { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+:root[data-theme="gem"] .panel .year { color: #000; }
+.panel h3 { font-size: 24px; margin-bottom: 10px; }
+:root[data-theme="gem"] .panel h3 { font-size: 14px; }
+.panel p { color: var(--text-2); }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.tag { font-size: 13px; font-weight: 600; padding: 3px 12px; border-radius: var(--r-pill); background: var(--surface-2); border: var(--bw) solid var(--line); color: var(--text-2); }
+.spec { background: var(--surface); border: var(--bw) solid var(--line); border-radius: var(--r-lg); padding: 8px 22px 22px; box-shadow: var(--shadow-card); }
+.spec-h { font-size: 13px; color: var(--text-3); padding: 14px 0 6px; font-weight: 600; }
+:root[data-theme="gem"] .spec-h { color: #000; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: var(--bw) solid var(--line); font-size: 15px; }
+.row:last-of-type { border-bottom: none; }
+.row span:first-child { color: var(--text-3); }
+:root[data-theme="gem"] .row span:first-child { color: #222; }
+.row span:last-child { font-weight: 600; text-align: right; }
+.spec .btn { width: 100%; justify-content: center; margin-top: 12px; cursor: default; }
 
-  .platform-strip { background: var(--forge-panel); border-top: 1px solid rgba(184,92,32,0.2); border-bottom: 1px solid rgba(184,92,32,0.2); padding: 1rem 3rem; display: flex; align-items: center; justify-content: center; gap: 3rem; overflow: hidden; flex-wrap: wrap; }
-  .platform-item { display: flex; align-items: center; gap: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forge-beige); opacity: 0.7; white-space: nowrap; }
-  .platform-dot { width: 4px; height: 4px; background: var(--forge-orange); border-radius: 50%; }
+/* ── Looks ────────────────────────────────────────────────────────────── */
+.looks { display: grid; gap: 16px; margin-top: 34px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.look-card { text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 12px; background: var(--surface); border: var(--bw) solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-card); }
+.look-card:hover { border-color: var(--accent); }
+.look-card[aria-pressed="true"] { border-color: var(--accent); outline: var(--bw) solid var(--accent); }
+.look-card img { border: var(--bw) solid var(--line); border-radius: var(--r-sm); margin-bottom: 10px; }
+.look-card strong { display: block; font-size: 16px; }
+.look-card span { font-size: 14px; color: var(--text-2); }
 
-  .moods { padding: 0; overflow: hidden; }
-  .moods-header { text-align: center; padding: 6rem 2rem 4rem; background: var(--forge-charcoal); }
-  .section-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--forge-orange); margin-bottom: 1rem; }
-  .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 400; color: var(--forge-cream); line-height: 1.1; }
-  .section-title em { font-style: italic; color: var(--forge-orange); }
+/* ── Download ─────────────────────────────────────────────────────────── */
+.dl-grid { display: grid; gap: 16px; margin-top: 34px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.dl-grid h3 { font-size: 20px; margin-bottom: 10px; }
+:root[data-theme="gem"] .dl-grid h3 { font-size: 13px; }
+.dl-grid ol { padding-left: 20px; color: var(--text-2); font-size: 15px; display: grid; gap: 6px; }
+.small { font-size: 14px; color: var(--text-3); margin-top: 22px; max-width: 760px; }
+:root[data-theme="gem"] .small { color: #000; background: #fff; border: 3px solid #000; padding: 8px 12px; }
+code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.9em; background: var(--surface-2); border: var(--bw) solid var(--line); border-radius: 6px; padding: 1px 6px; }
+:root[data-theme="gem"] code { font-family: var(--font-ui); border-radius: 0; }
 
-  .machine-tabs { display: flex; justify-content: center; background: var(--forge-panel); border-top: 1px solid rgba(184,92,32,0.15); border-bottom: 1px solid rgba(184,92,32,0.15); flex-wrap: wrap; }
-  .machine-tab { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 1rem 1.75rem; cursor: pointer; color: rgba(200,184,154,0.5); border: none; background: transparent; border-bottom: 2px solid transparent; transition: all 0.3s; }
-  .machine-tab.active { color: var(--forge-cream); border-bottom-color: var(--forge-orange); }
-  .machine-tab:hover:not(.active) { color: var(--forge-beige); }
+/* ── Footer ───────────────────────────────────────────────────────────── */
+footer { background: var(--surface); border-top: var(--bw) solid var(--line); padding: 36px 0 44px; }
+.foot { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.foot ul { list-style: none; display: flex; gap: 20px; flex-wrap: wrap; }
+.disclaimer { margin-top: 24px; font-size: 12.5px; color: var(--text-3); max-width: 900px; line-height: 1.7; }
+:root[data-theme="gem"] .disclaimer { color: #000; }
 
-  .mood-panel { display: none; min-height: 520px; padding: 5rem 3rem; position: relative; overflow: hidden; }
-  .mood-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-
-  .mood-st { background: linear-gradient(135deg, #0a0e14 0%, #0d1520 50%, #0a1218 100%); }
-  .mood-st .mood-accent { color: #4A9EDB; }
-  .mood-st .mood-line { background: rgba(74,158,219,0.3); }
-  .mood-st .mood-tag { border-color: rgba(74,158,219,0.4); color: #4A9EDB; }
-  .mood-st .spec-val { color: #4A9EDB; }
-  .mood-st::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(74,158,219,0.08), transparent 70%); }
-
-  .mood-ste { background: linear-gradient(135deg, #0e0a04 0%, #1a1005 50%, #120c04 100%); }
-  .mood-ste .mood-accent { color: var(--forge-amber); }
-  .mood-ste .mood-line { background: rgba(232,160,64,0.3); }
-  .mood-ste .mood-tag { border-color: rgba(232,160,64,0.4); color: var(--forge-amber); }
-  .mood-ste .spec-val { color: var(--forge-amber); }
-  .mood-ste::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(232,160,64,0.1), transparent 70%); }
-
-  .mood-mega { background: linear-gradient(135deg, #080808 0%, #101010 50%, #0a0a0a 100%); }
-  .mood-mega .mood-accent { color: #6FCF97; }
-  .mood-mega .mood-line { background: rgba(111,207,151,0.3); }
-  .mood-mega .mood-tag { border-color: rgba(111,207,151,0.4); color: #6FCF97; }
-  .mood-mega .spec-val { color: #6FCF97; }
-  .mood-mega::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(111,207,151,0.06), transparent 70%); }
-
-  .mood-falcon { background: linear-gradient(135deg, #08060f 0%, #100a1e 50%, #0c0814 100%); }
-  .mood-falcon .mood-accent { color: #C084FC; }
-  .mood-falcon .mood-line { background: rgba(192,132,252,0.3); }
-  .mood-falcon .mood-tag { border-color: rgba(192,132,252,0.4); color: #C084FC; }
-  .mood-falcon .spec-val { color: #C084FC; }
-  .mood-falcon::before { content: ''; position: absolute; top: -100px; right: -100px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(192,132,252,0.1), transparent 70%); }
-  .mood-falcon::after { content: ''; position: absolute; bottom: -80px; left: -80px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(96,165,250,0.06), transparent 70%); pointer-events: none; }
-
-  .crown-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: #C084FC; background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.35); padding: 0.25rem 0.65rem; margin-bottom: 0.75rem; }
-
-  .mood-text { position: relative; z-index: 2; }
-  .mood-machine-name { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.75rem; }
-  .mood-title { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 400; color: var(--forge-cream); line-height: 1.1; margin-bottom: 1rem; }
-  .mood-line-sep { width: 48px; height: 2px; margin-bottom: 1.5rem; }
-  .mood-desc { font-size: 0.9rem; font-weight: 300; color: rgba(240,232,216,0.6); line-height: 1.85; margin-bottom: 2rem; }
-  .mood-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .mood-tag { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.3rem 0.75rem; border: 1px solid; background: transparent; }
-  .mood-visual { position: relative; z-index: 2; }
-  .machine-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 2rem; font-family: 'Space Mono', monospace; }
-  .falcon-card { border: 1px solid rgba(192,132,252,0.2) !important; }
-  .machine-card-header { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(200,184,154,0.4); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .spec-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-  .spec-key { font-size: 0.65rem; color: rgba(200,184,154,0.5); letter-spacing: 0.1em; }
-  .spec-val { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
-  .launch-btn { width: 100%; margin-top: 1.5rem; padding: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
-  .launch-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-
-  .features { background: var(--forge-charcoal); padding: 7rem 3rem; }
-  .features-header { text-align: center; margin-bottom: 5rem; }
-  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(184,92,32,0.15); max-width: 1100px; margin: 0 auto; }
-  .feature-cell { background: var(--forge-charcoal); padding: 2.5rem; transition: background 0.3s; }
-  .feature-cell:hover { background: rgba(184,92,32,0.04); }
-  .feature-number { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--forge-orange); margin-bottom: 1.5rem; opacity: 0.6; }
-  .feature-name { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; color: var(--forge-cream); margin-bottom: 0.75rem; line-height: 1.2; }
-  .feature-desc { font-size: 0.82rem; font-weight: 300; color: rgba(240,232,216,0.5); line-height: 1.75; }
-
-  .download { position: relative; background: var(--forge-dark); padding: 8rem 3rem; text-align: center; overflow: hidden; }
-  .download::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(184,92,32,0.08), transparent); }
-  .download-fuji { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.03; width: 800px; height: 800px; }
-  .download-content { position: relative; z-index: 2; }
-  .download-version { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--forge-orange); margin-bottom: 1.5rem; }
-  .download-title { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 400; color: var(--forge-cream); line-height: 1.1; margin-bottom: 1.5rem; }
-  .download-desc { font-size: 1rem; font-weight: 300; color: rgba(240,232,216,0.55); max-width: 480px; margin: 0 auto 3rem; line-height: 1.8; }
-  .platform-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  .platform-btn { display: flex; align-items: center; gap: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.8rem 1.5rem; border: 1px solid rgba(184,92,32,0.4); color: var(--forge-beige); background: rgba(184,92,32,0.06); cursor: pointer; transition: all 0.2s; }
-  .platform-btn:hover { border-color: var(--forge-orange); color: var(--forge-cream); background: rgba(184,92,32,0.12); }
-  .download-note { font-size: 0.75rem; color: rgba(200,184,154,0.35); font-family: 'Space Mono', monospace; letter-spacing: 0.08em; }
-
-  footer { background: var(--forge-panel); border-top: 1px solid rgba(184,92,32,0.15); padding: 3rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
-  .footer-brand { display: flex; align-items: center; gap: 0.75rem; }
-  .footer-tagline { font-size: 0.75rem; color: rgba(200,184,154,0.4); font-family: 'Space Mono', monospace; letter-spacing: 0.08em; margin-top: 0.25rem; }
-  .footer-links { display: flex; gap: 2rem; list-style: none; }
-  .footer-links a { font-size: 0.7rem; font-family: 'Space Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(200,184,154,0.35); text-decoration: none; transition: color 0.2s; }
-  .footer-links a:hover { color: var(--forge-orange); }
-  .footer-copy { font-size: 0.65rem; font-family: 'Space Mono', monospace; color: rgba(200,184,154,0.25); letter-spacing: 0.08em; }
+@media (max-width: 760px) {
+  section { padding: 52px 0; }
+  .panel.on { grid-template-columns: 1fr; }
+  .look { margin-left: 0; width: 100%; }
+  .nav-links { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="#" class="nav-logo">
-    <img src="icon.png" class="fuji-icon" alt="FujiNext™ icon" />
-    <span class="nav-brand">FujiNext™</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#machines">Machines</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#download">Download</a></li>
-    <li><a href="#">GitHub</a></li>
-  </ul>
-  <button class="nav-cta">Download Free</button>
+  <div class="nav-in">
+    <a class="brand" href="#top"><img src="icon.png" alt="" width="32" height="32"> FujiNext™</a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#machines">Machines</a></li>
+      <li><a href="#looks">Looks</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="https://github.com/Jeffwarz/FujiNext">GitHub</a></li>
+    </ul>
+    <div class="look" role="group" aria-label="Choose how this page looks">
+      <span class="look-label">Look</span>
+      <button type="button" data-look="dark" aria-pressed="true">Dark</button>
+      <button type="button" data-look="light" aria-pressed="false">Light</button>
+      <button type="button" data-look="gem" aria-pressed="false">GEM</button>
+    </div>
+  </div>
 </nav>
 
+<main id="top">
+
 <section class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-grid"></div>
-  <div class="hero-fragments">
-    <div class="fragment"></div><div class="fragment"></div><div class="fragment"></div><div class="fragment"></div><div class="fragment"></div>
-  </div>
-  <svg class="hero-fuji-bg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <rect x="42" y="8" width="16" height="52" rx="8" fill="#B85C20"/>
-    <rect x="12" y="28" width="16" height="36" rx="8" fill="#B85C20"/>
-    <rect x="72" y="28" width="16" height="36" rx="8" fill="#B85C20"/>
-    <rect x="12" y="60" width="76" height="16" rx="8" fill="#B85C20"/>
-  </svg>
-  <div class="hero-content">
-    <div class="hero-badge"><span class="badge-dot"></span>Hatari Frontend — Open Source</div>
-    <h1 class="hero-title">The Atari ST<br><em>reborn.</em></h1>
-    <p class="hero-sub">Windows · macOS · Linux</p>
-    <p class="hero-desc">FujiNext™ is the friendly, intuitive frontend for Hatari — a precision-crafted profile manager, hardware configurator, and launcher for your Atari ST machines. Every detail. Every machine. Every era.</p>
-    <div class="hero-actions">
-      <button class="btn-primary">Download FujiNext™</button>
-      <button class="btn-secondary">View on GitHub →</button>
+  <div class="wrap">
+    <div class="eyebrow">A front end for Hatari</div>
+    <h1>Your Atari, <em>ready to launch.</em></h1>
+    <p class="lead">Pick a machine, point FujiNext at your ROMs and disks, press Launch. Ready-made profiles, joysticks and devices, and a look that suits you. For macOS and Windows.</p>
+    <div class="actions">
+      <a class="btn" href="#download">Get FujiNext™</a>
+      <a class="btn ghost" href="https://github.com/Jeffwarz/FujiNext">View on GitHub →</a>
     </div>
-  </div>
-  <div class="hero-scroll">
-    <span class="scroll-label">Explore</span>
-    <div class="scroll-line"></div>
+    <p class="hero-note">Free and open source. Needs Hatari installed.</p>
+
+    <div class="shot">
+      <img id="hero-shot" src="img/app-dark.png" width="2360" height="1520" alt="The FujiNext window showing the Falcon Games profile, with a Launch button, summary tiles and the Machine tab.">
+    </div>
+    <p class="shot-cap">This is the real app. Use the Look buttons above to see it in each look.</p>
   </div>
 </section>
 
-<div class="platform-strip">
-  <div class="platform-item"><span class="platform-dot"></span> Atari ST</div>
-  <div class="platform-item"><span class="platform-dot"></span> Atari STE</div>
-  <div class="platform-item"><span class="platform-dot"></span> Mega ST</div>
-  <div class="platform-item"><span class="platform-dot"></span> Falcon 030</div>
-  <div class="platform-item"><span class="platform-dot"></span> Hatari 2.x</div>
-  <div class="platform-item"><span class="platform-dot"></span> Free &amp; Open Source</div>
+<div class="strip">
+  <div class="wrap">
+    <ul aria-label="Supported machines">
+      <li>Atari ST</li><li>STE</li><li>Mega STE</li><li>TT</li><li>Falcon</li>
+    </ul>
+  </div>
 </div>
 
-<section class="moods" id="machines">
-  <div class="moods-header">
-    <div class="section-eyebrow">Machine Profiles</div>
-    <h2 class="section-title">Every machine has<br>its own <em>character.</em></h2>
-  </div>
-  <div class="machine-tabs">
-    <button class="machine-tab active" onclick="switchMood('st', this)">Atari ST</button>
-    <button class="machine-tab" onclick="switchMood('ste', this)">Atari STE</button>
-    <button class="machine-tab" onclick="switchMood('mega', this)">Mega ST</button>
-    <button class="machine-tab" onclick="switchMood('falcon', this)">Falcon 030 ✦</button>
-  </div>
-
-  <div class="mood-panel mood-st active" id="mood-st">
-    <div class="mood-text">
-      <div class="mood-machine-name mood-accent">ATARI 520ST · 1985</div>
-      <h3 class="mood-title">The office that<br>changed everything.</h3>
-      <div class="mood-line-sep mood-line"></div>
-      <p class="mood-desc">GEM desktop. MIDI workstation. Desktop publishing pioneer. The ST arrived as a professional productivity machine that outpaced machines costing three times as much. Configure your ST profile with precision — RAM, CPU clock, TOS version, GEMDOS drive and blitter settings exactly as you need them.</p>
-      <div class="mood-tags">
-        <span class="mood-tag">TOS 1.0 – 2.06</span><span class="mood-tag">Blitter Toggle</span><span class="mood-tag">MIDI Config</span><span class="mood-tag">GEMDOS HD</span>
-      </div>
-    </div>
-    <div class="mood-visual">
-      <div class="machine-card">
-        <div class="machine-card-header">Profile: Studio ST · Last Run: Today</div>
-        <div class="spec-row"><span class="spec-key">Machine</span><span class="spec-val mood-accent">520ST</span></div>
-        <div class="spec-row"><span class="spec-key">TOS Version</span><span class="spec-val mood-accent">1.04</span></div>
-        <div class="spec-row"><span class="spec-key">RAM</span><span class="spec-val mood-accent">1 MB</span></div>
-        <div class="spec-row"><span class="spec-key">Blitter</span><span class="spec-val mood-accent">Enabled</span></div>
-        <div class="spec-row"><span class="spec-key">MIDI</span><span class="spec-val mood-accent">Out → In</span></div>
-        <div class="spec-row"><span class="spec-key">Storage</span><span class="spec-val mood-accent">GEMDOS · 512MB</span></div>
-        <button class="launch-btn" style="background:#4A9EDB; color:#0a0e14;">▶ Launch Hatari</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="mood-panel mood-ste" id="mood-ste">
-    <div class="mood-text">
-      <div class="mood-machine-name mood-accent">ATARI STE · 1989</div>
-      <h3 class="mood-title">Colour, sound,<br>and pure speed.</h3>
-      <div class="mood-line-sep mood-line"></div>
-      <p class="mood-desc">The STE arrived with enhanced graphics, a richer colour palette, hardware scrolling, DMA audio, and a joystick port with proportional controls. The preferred machine of demo coders and game collectors. Unlock the STE's full capabilities with a single profile switch.</p>
-      <div class="mood-tags">
-        <span class="mood-tag">DMA Sound</span><span class="mood-tag">4096 Colours</span><span class="mood-tag">Hardware Scroll</span><span class="mood-tag">Joypad Support</span>
-      </div>
-    </div>
-    <div class="mood-visual">
-      <div class="machine-card">
-        <div class="machine-card-header">Profile: Gaming STE · Last Run: Yesterday</div>
-        <div class="spec-row"><span class="spec-key">Machine</span><span class="spec-val mood-accent">1040STE</span></div>
-        <div class="spec-row"><span class="spec-key">TOS Version</span><span class="spec-val mood-accent">2.06</span></div>
-        <div class="spec-row"><span class="spec-key">RAM</span><span class="spec-val mood-accent">4 MB</span></div>
-        <div class="spec-row"><span class="spec-key">DMA Sound</span><span class="spec-val mood-accent">Enabled</span></div>
-        <div class="spec-row"><span class="spec-key">Enhanced Palette</span><span class="spec-val mood-accent">4096 cols</span></div>
-        <div class="spec-row"><span class="spec-key">Joystick</span><span class="spec-val mood-accent">Port 0 + 1</span></div>
-        <button class="launch-btn" style="background:#E8A040; color:#0e0a04;">▶ Launch Hatari</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="mood-panel mood-mega" id="mood-mega">
-    <div class="mood-text">
-      <div class="mood-machine-name mood-accent">MEGA ST · 1987</div>
-      <h3 class="mood-title">The developer's<br>dark instrument.</h3>
-      <div class="mood-line-sep mood-line"></div>
-      <p class="mood-desc">Designed for professionals. Detached keyboard, VME expansion bus, real-time clock, and a chassis built to sit on your desk like infrastructure. The Mega ST was Atari's statement to CAD designers, DTP studios, and serious developers.</p>
-      <div class="mood-tags">
-        <span class="mood-tag">VME Bus</span><span class="mood-tag">RTC Clock</span><span class="mood-tag">Dev Tools</span><span class="mood-tag">4MB RAM</span>
-      </div>
-    </div>
-    <div class="mood-visual">
-      <div class="machine-card">
-        <div class="machine-card-header">Profile: Dev Mega ST · Last Run: 3 days ago</div>
-        <div class="spec-row"><span class="spec-key">Machine</span><span class="spec-val mood-accent">Mega ST4</span></div>
-        <div class="spec-row"><span class="spec-key">TOS Version</span><span class="spec-val mood-accent">1.06</span></div>
-        <div class="spec-row"><span class="spec-key">RAM</span><span class="spec-val mood-accent">4 MB</span></div>
-        <div class="spec-row"><span class="spec-key">Real-Time Clock</span><span class="spec-val mood-accent">Active</span></div>
-        <div class="spec-row"><span class="spec-key">Blitter</span><span class="spec-val mood-accent">Enabled</span></div>
-        <div class="spec-row"><span class="spec-key">RS-232</span><span class="spec-val mood-accent">Dev Output</span></div>
-        <button class="launch-btn" style="background:#6FCF97; color:#080808;">▶ Launch Hatari</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="mood-panel mood-falcon" id="mood-falcon">
-    <div class="mood-text">
-      <div class="crown-badge">✦ The Ultimate Atari Build</div>
-      <div class="mood-machine-name mood-accent">ATARI FALCON 030 · 1992</div>
-      <h3 class="mood-title">Atari's final<br><em style="font-style:italic; color:#C084FC;">masterpiece.</em></h3>
-      <div class="mood-line-sep mood-line"></div>
-      <p class="mood-desc">The Falcon was Atari's greatest machine — and their last. A Motorola 68030 CPU paired with a Motorola DSP56001 signal processor, 16-bit stereo sound, a 65,536-colour display, and a true 32-bit data bus. No other home computer in 1992 touched it. Configure the Falcon the way it deserved to be.</p>
-      <div class="mood-tags">
-        <span class="mood-tag">68030 CPU</span><span class="mood-tag">DSP56001</span><span class="mood-tag">65536 Colours</span><span class="mood-tag">16-bit Stereo</span><span class="mood-tag">TOS 4.x</span><span class="mood-tag">IDE + SCSI</span>
-      </div>
-    </div>
-    <div class="mood-visual">
-      <div class="machine-card falcon-card">
-        <div class="machine-card-header" style="color:rgba(192,132,252,0.4);">Profile: Falcon Ultimate · Last Run: Today</div>
-        <div class="spec-row"><span class="spec-key">Machine</span><span class="spec-val mood-accent">Falcon 030</span></div>
-        <div class="spec-row"><span class="spec-key">TOS Version</span><span class="spec-val mood-accent">4.04</span></div>
-        <div class="spec-row"><span class="spec-key">RAM</span><span class="spec-val mood-accent">14 MB</span></div>
-        <div class="spec-row"><span class="spec-key">DSP</span><span class="spec-val mood-accent">56001 · Active</span></div>
-        <div class="spec-row"><span class="spec-key">Video</span><span class="spec-val mood-accent">VGA · 65536 cols</span></div>
-        <div class="spec-row"><span class="spec-key">Audio</span><span class="spec-val mood-accent">16-bit · 50kHz</span></div>
-        <button class="launch-btn" style="background: linear-gradient(90deg, #9333EA, #C084FC); color:#08060f;">▶ Launch Hatari</button>
-      </div>
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow">What it does</div>
+    <h2>Everything in one place</h2>
+    <p class="lead">FujiNext writes a Hatari configuration for each profile and starts Hatari with it. Hatari itself is never changed.</p>
+    <div class="grid">
+      <div class="card"><div class="num">01</div><h3>Ready-made profiles</h3><p>Eight starting points, from a games ST to a Falcon with DSP, plus one that needs no TOS ROM at all. Duplicate them, change them, and restore the originals whenever you like. Your own profiles are never touched.</p></div>
+      <div class="card"><div class="num">02</div><h3>Machine settings</h3><p>Machine type, CPU speed and type, FPU, ST RAM and TT-RAM, blitter, DSP and more, laid out clearly with the rarely used options folded away.</p></div>
+      <div class="card"><div class="num">03</div><h3>Finds your TOS ROMs</h3><p>Point it at a folder and it identifies each ROM from its contents, whatever the file is called. It tells you which file will load, and why if it can't.</p></div>
+      <div class="card"><div class="num">04</div><h3>Storage</h3><p>Floppy images, hard disk images (ACSI, SCSI, IDE) and a GEMDOS folder, with boot-from-hard-disk.</p></div>
+      <div class="card"><div class="num">05</div><h3>Joysticks and devices</h3><p>Set up all six joystick ports with a game controller or the keyboard. Switch on printer, RS232 and MIDI emulation, with files for each.</p></div>
+      <div class="card"><div class="num">06</div><h3>Import your setup</h3><p>Bring in an existing Hatari <code>.cfg</code> file as a new profile, and keep using Hatari the way you already do.</p></div>
+      <div class="card"><div class="num">07</div><h3>Display and sound</h3><p>Monitor type, full screen, borders, pixel doubling and aspect ratio, plus sound on or off and the playback frequency.</p></div>
+      <div class="card"><div class="num">08</div><h3>Three looks</h3><p>Dark, light, or chunky GEM. Switch any time from the sidebar, and FujiNext remembers your choice.</p></div>
     </div>
   </div>
 </section>
 
-<section class="features" id="features">
-  <div class="features-header">
-    <div class="section-eyebrow">Capabilities</div>
-    <h2 class="section-title" style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,4vw,3.5rem);color:var(--forge-cream);font-weight:400;">Built for enthusiasts<br>who demand <em style="font-style:italic;color:var(--forge-orange);">precision.</em></h2>
-  </div>
-  <div class="features-grid">
-    <div class="feature-cell"><div class="feature-number">01</div><div class="feature-name">Profile Manager</div><p class="feature-desc">Save and switch between unlimited machine configurations. Each profile is a complete snapshot of your hardware, storage, display, sound, and peripherals.</p></div>
-    <div class="feature-cell"><div class="feature-number">02</div><div class="feature-name">Hardware Configurator</div><p class="feature-desc">Expose every Hatari config parameter through a clean, organised interface. TOS selection, RAM allocation, blitter, MIDI routing, and more — no config file editing required.</p></div>
-    <div class="feature-cell"><div class="feature-number">03</div><div class="feature-name">Storage Management</div><p class="feature-desc">Mount GEMDOS directories, floppy images, and ACSI hard disk images. Configure boot priority and manage your entire software library without leaving the app.</p></div>
-    <div class="feature-cell"><div class="feature-number">04</div><div class="feature-name">Cross-Platform Native</div><p class="feature-desc">Built with Tauri for native performance on macOS, Windows, and Linux. Uses your system's Hatari installation — no bundled emulator, no version lock-in.</p></div>
-    <div class="feature-cell"><div class="feature-number">05</div><div class="feature-name">Display &amp; Sound</div><p class="feature-desc">Configure monitor type, resolution, frame rate, and CRT emulation. Route audio, set YM2149 mixing, and enable STE DMA or Falcon 16-bit output exactly as the original hardware did.</p></div>
-    <div class="feature-cell"><div class="feature-number">06</div><div class="feature-name">Open Source Forever</div><p class="feature-desc">FujiNext™ is free and open source. Fork it, extend it, contribute to it. Built by the community for the community — the same way the Atari scene has always operated.</p></div>
+<section id="machines" style="background: var(--surface); border-top: var(--bw) solid var(--line); border-bottom: var(--bw) solid var(--line);">
+  <div class="wrap">
+    <div class="eyebrow">Machines</div>
+    <h2>One profile per machine</h2>
+    <p class="lead">Each profile is a complete snapshot of a machine. Here is a taste of what a profile holds.</p>
+
+    <div class="tabs" role="tablist" aria-label="Machines">
+      <button class="tab" role="tab" id="t-st" aria-controls="p-st" aria-selected="true" data-p="st">ST</button>
+      <button class="tab" role="tab" id="t-ste" aria-controls="p-ste" aria-selected="false" data-p="ste">STE</button>
+      <button class="tab" role="tab" id="t-mste" aria-controls="p-mste" aria-selected="false" data-p="mste">Mega STE</button>
+      <button class="tab" role="tab" id="t-tt" aria-controls="p-tt" aria-selected="false" data-p="tt">TT</button>
+      <button class="tab" role="tab" id="t-falcon" aria-controls="p-falcon" aria-selected="false" data-p="falcon">Falcon</button>
+    </div>
+
+    <div class="panel on" id="p-st" role="tabpanel" aria-labelledby="t-st">
+      <div class="info"><div class="year">Atari ST · 1985</div><h3>Where it all started</h3>
+        <p>The machine that brought GEM, MIDI and a mouse-driven desktop to the home. Great for classic games, music software and early desktop publishing.</p>
+        <div class="tags"><span class="tag">Motorola 68000</span><span class="tag">TOS 1.00 – 2.06</span><span class="tag">MIDI built in</span></div></div>
+      <div class="spec"><div class="spec-h">Profile: Gaming ST</div>
+        <div class="row"><span>Machine</span><span>ST</span></div><div class="row"><span>CPU</span><span>68000 · 8 MHz</span></div>
+        <div class="row"><span>Memory</span><span>512 KB</span></div><div class="row"><span>TOS</span><span>1.04</span></div>
+        <div class="row"><span>Monitor</span><span>Colour</span></div><span class="btn">▶ Launch</span></div>
+    </div>
+    <div class="panel" id="p-ste" role="tabpanel" aria-labelledby="t-ste" hidden>
+      <div class="info"><div class="year">Atari STE · 1989</div><h3>Better colour and sound</h3>
+        <p>An ST with a bigger palette, hardware scrolling, digital stereo sound and two joypad ports. A favourite of demo makers and game fans.</p>
+        <div class="tags"><span class="tag">Joypad ports</span><span class="tag">DMA sound</span><span class="tag">TOS 1.06 – 2.06</span></div></div>
+      <div class="spec"><div class="spec-h">Profile: Upgraded STE</div>
+        <div class="row"><span>Machine</span><span>STE</span></div><div class="row"><span>CPU</span><span>68000 · 8 MHz</span></div>
+        <div class="row"><span>Memory</span><span>4 MiB</span></div><div class="row"><span>TOS</span><span>1.62</span></div>
+        <div class="row"><span>Blitter</span><span>On</span></div><span class="btn">▶ Launch</span></div>
+    </div>
+    <div class="panel" id="p-mste" role="tabpanel" aria-labelledby="t-mste" hidden>
+      <div class="info"><div class="year">Mega STE · 1990</div><h3>The workstation</h3>
+        <p>A faster STE in a desktop case with a detached keyboard, a real-time clock and a 16 MHz CPU. Aimed at offices and serious users.</p>
+        <div class="tags"><span class="tag">16 MHz</span><span class="tag">TOS 2.05 / 2.06</span><span class="tag">Real-time clock</span></div></div>
+      <div class="spec"><div class="spec-h">Profile: Mega STE Office</div>
+        <div class="row"><span>Machine</span><span>Mega STE</span></div><div class="row"><span>CPU</span><span>68000 · 16 MHz</span></div>
+        <div class="row"><span>Memory</span><span>4 MiB</span></div><div class="row"><span>TOS</span><span>2.06</span></div>
+        <div class="row"><span>Blitter</span><span>On</span></div><span class="btn">▶ Launch</span></div>
+    </div>
+    <div class="panel" id="p-tt" role="tabpanel" aria-labelledby="t-tt" hidden>
+      <div class="info"><div class="year">Atari TT · 1990</div><h3>Power and big memory</h3>
+        <p>A 32 MHz 68030 with fast TT-RAM and high-resolution graphics, built for workstation jobs such as CAD and publishing.</p>
+        <div class="tags"><span class="tag">68030 · 32 MHz</span><span class="tag">TT-RAM</span><span class="tag">TOS 3.06</span></div></div>
+      <div class="spec"><div class="spec-h">Profile: TT Max</div>
+        <div class="row"><span>Machine</span><span>TT</span></div><div class="row"><span>CPU</span><span>68030 · 32 MHz</span></div>
+        <div class="row"><span>Memory</span><span>10 MiB + 256 MiB TT-RAM</span></div><div class="row"><span>TOS</span><span>3.06</span></div>
+        <div class="row"><span>Monitor</span><span>Mono</span></div><span class="btn">▶ Launch</span></div>
+    </div>
+    <div class="panel" id="p-falcon" role="tabpanel" aria-labelledby="t-falcon" hidden>
+      <div class="info"><div class="year">Falcon 030 · 1992</div><h3>The last and the most capable</h3>
+        <p>A 68030 with a DSP56001 signal processor, 16-bit stereo sound and a far wider range of colours. FujiNext sets up TT-RAM and 32-bit addressing for you.</p>
+        <div class="tags"><span class="tag">68030</span><span class="tag">DSP56001</span><span class="tag">TOS 4.04</span><span class="tag">TT-RAM</span></div></div>
+      <div class="spec"><div class="spec-h">Profile: Falcon Games</div>
+        <div class="row"><span>Machine</span><span>Falcon</span></div><div class="row"><span>CPU</span><span>68030 · 16 MHz</span></div>
+        <div class="row"><span>Memory</span><span>14 MiB</span></div><div class="row"><span>TOS</span><span>4.04</span></div>
+        <div class="row"><span>DSP</span><span>On</span></div><span class="btn">▶ Launch</span></div>
+    </div>
   </div>
 </section>
 
-<section class="download" id="download">
-  <svg class="download-fuji" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <rect x="42" y="8" width="16" height="52" rx="8" fill="#B85C20"/>
-    <rect x="12" y="28" width="16" height="36" rx="8" fill="#B85C20"/>
-    <rect x="72" y="28" width="16" height="36" rx="8" fill="#B85C20"/>
-    <rect x="12" y="60" width="76" height="16" rx="8" fill="#B85C20"/>
-  </svg>
-  <div class="download-content">
-    <div class="download-version">v1.0 · Free Release</div>
-    <h2 class="download-title">Fire it up.<br>Forge your machine.</h2>
-    <p class="download-desc">FujiNext™ v1.0 is free to download, free to use, and free to build upon. Your Atari era, your rules.</p>
-    <div class="platform-btns">
-      <button class="platform-btn">macOS</button>
-      <button class="platform-btn">Windows</button>
-      <button class="platform-btn">Linux</button>
+<section id="looks">
+  <div class="wrap">
+    <div class="eyebrow">Looks</div>
+    <h2>Make it yours</h2>
+    <p class="lead">Pick a look here and this page changes with it. The app has the same choice in the sidebar and in Settings.</p>
+    <div class="looks">
+      <button type="button" class="look-card" data-look="dark" aria-pressed="true"><img src="img/app-dark.png" width="2360" height="1520" alt="" loading="lazy"><strong>Dark</strong><span>Easy on the eyes, with a mint accent.</span></button>
+      <button type="button" class="look-card" data-look="light" aria-pressed="false"><img src="img/app-light.png" width="2360" height="1520" alt="" loading="lazy"><strong>Light</strong><span>Clean and bright for daytime.</span></button>
+      <button type="button" class="look-card" data-look="gem" aria-pressed="false"><img src="img/app-gem.png" width="2360" height="1520" alt="" loading="lazy"><strong>GEM</strong><span>Chunky black and white, thick borders and pixel fonts.</span></button>
     </div>
-    <p class="download-note">Requires Hatari 2.x · MIT License · Built with Tauri &amp; React</p>
   </div>
 </section>
+
+<section id="download" style="background: var(--surface); border-top: var(--bw) solid var(--line);">
+  <div class="wrap">
+    <div class="eyebrow">Get it</div>
+    <h2>Download and run</h2>
+    <p class="lead">FujiNext is free and open source. It works with the Hatari you already have, so install Hatari first (on macOS with <code>brew install hatari</code>, on Windows with the official installer).</p>
+    <div class="actions" style="margin-top: 26px;">
+      <a class="btn" href="https://github.com/Jeffwarz/FujiNext/releases">Downloads on GitHub</a>
+      <a class="btn ghost" href="https://github.com/Jeffwarz/FujiNext">Source code</a>
+    </div>
+
+    <div class="dl-grid">
+      <div class="card"><h3>macOS</h3>
+        <ol>
+          <li>Open the downloaded file and drag FujiNext into Applications.</li>
+          <li>The first time, right-click the app and choose <strong>Open</strong>, then confirm. Or use System Settings → Privacy &amp; Security → <strong>Open Anyway</strong>.</li>
+          <li>Open Settings and point it at Hatari and your ROMs folder.</li>
+        </ol></div>
+      <div class="card"><h3>Windows</h3>
+        <ol>
+          <li>Run the installer.</li>
+          <li>If Windows warns about an unknown publisher, choose <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+          <li>Open Settings and point it at Hatari and your ROMs folder.</li>
+        </ol></div>
+    </div>
+    <p class="small">FujiNext isn't signed with a paid developer certificate yet, which is why the first-run steps are needed. You supply your own TOS ROMs; EmuTOS (free) works with every machine and needs no extra file.</p>
+  </div>
+</section>
+
+</main>
 
 <footer>
-  <div class="footer-brand">
-    <img src="icon.png" width="32" height="32" alt="FujiNext™ icon" style="border-radius:6px;" />
-    <div>
-      <div style="font-family:'Space Mono',monospace;font-size:0.85rem;font-weight:700;color:var(--forge-cream);">FujiNext™</div>
-      <div class="footer-tagline">The Hatari frontend. v1.0 · © 2025 Jeff Warz</div>
+  <div class="wrap">
+    <div class="foot">
+      <a class="brand" href="#top"><img src="icon.png" alt="" width="32" height="32"> FujiNext™</a>
+      <ul>
+        <li><a href="https://github.com/Jeffwarz/FujiNext">GitHub</a></li>
+        <li><a href="https://github.com/Jeffwarz/FujiNext/releases">Releases</a></li>
+        <li><a href="https://hatari.tuxfamily.org">Hatari</a></li>
+      </ul>
     </div>
+    <p class="disclaimer">FujiNext™ · © 2025 Jeff Warz · Open source. FujiNext™ is an independent project and is not affiliated with, endorsed by, or associated with the Hatari development team or its contributors. Hatari is a separate open source Atari emulator developed independently; visit <a href="https://hatari.tuxfamily.org">hatari.tuxfamily.org</a> for more information. FujiNext™ is also not affiliated with or endorsed by any current or former holders of the Atari name or intellectual property. All Atari machine names are referenced for descriptive and compatibility purposes only.</p>
   </div>
-  <ul class="footer-links">
-    <li><a href="#">GitHub</a></li>
-    <li><a href="#">Docs</a></li>
-    <li><a href="#">Releases</a></li>
-    <li><a href="#">Community</a></li>
-  </ul>
-  <div class="footer-copy">© 2025 Jeff Warz · Open Source · MIT License · Built with Tauri</div>
-</footer>
-<div style="background:#111008; border-top: 1px solid rgba(184,92,32,0.1); padding: 1.25rem 3rem; text-align:center;">
-  <p style="font-family:'Space Mono',monospace; font-size:0.6rem; color:rgba(200,184,154,0.25); letter-spacing:0.06em; line-height:1.8; max-width:800px; margin:0 auto;">
-    FujiNext™ v1.0 · © 2025 Jeff Warz · FujiNext™ is an independent open source project and is not affiliated with, endorsed by, or associated with the Hatari development team or its contributors. Hatari is a separate open source Atari emulator developed independently — visit <a href="https://hatari.tuxfamily.org" style="color:rgba(184,92,32,0.5); text-decoration:none;">hatari.tuxfamily.org</a> for more information. FujiNext™ is also not affiliated with or endorsed by any current or former holders of the Atari name or intellectual property. All Atari machine names are referenced for descriptive and compatibility purposes only.
-  </p>
-</div>
 </footer>
 
 <script>
-function switchMood(id, btn) {
-  document.querySelectorAll('.mood-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.machine-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('mood-' + id).classList.add('active');
-  btn.classList.add('active');
-}
+(function () {
+  var root = document.documentElement;
+  var shot = document.getElementById('hero-shot');
+
+  function setLook(look, save) {
+    root.setAttribute('data-theme', look);
+    shot.src = 'img/app-' + look + '.png';
+    document.querySelectorAll('[data-look]').forEach(function (el) {
+      el.setAttribute('aria-pressed', el.getAttribute('data-look') === look ? 'true' : 'false');
+    });
+    if (save) { try { localStorage.setItem('fujinext-look', look); } catch (e) {} }
+  }
+  document.querySelectorAll('[data-look]').forEach(function (el) {
+    el.addEventListener('click', function () { setLook(el.getAttribute('data-look'), true); });
+  });
+  setLook(root.getAttribute('data-theme') || 'dark', false);
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function pick(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      var p = document.getElementById(t.getAttribute('aria-controls'));
+      p.classList.toggle('on', on); p.hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { pick(t); });
+    t.addEventListener('keydown', function (e) {
+      var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null;
+      if (n === null) return;
+      var next = tabs[(n + tabs.length) % tabs.length];
+      pick(next); next.focus(); e.preventDefault();
+    });
+  });
+  pick(tabs[0]);
+})();
 </script>
 </body>
 </html>

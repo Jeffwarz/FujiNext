@@ -1,25 +1,24 @@
 import { useState } from 'react';
 import { Profile, MachineType, makeDefaultProfile } from '../types/profile';
 import { TOS_ROMS } from '../types/profile';
+import { DEMO_PROFILE_IDS } from '../demoProfiles';
+import { profileSpec } from '../profileSummary';
+import { THEMES, type Theme } from '../themes';
 
 interface Props {
   profiles:       Profile[];
   activeId:       number;
   onSelect:       (id: number) => void;
   onAdd:          (p: Profile) => void;
+  onImport:       () => Promise<string>;
   onDuplicate:    (id: number) => void;
   onRename:       (id: number, name: string) => void;
   onDelete:       (id: number) => void;
+  onRestore:      (id: number) => void;
+  theme:          Theme;
+  onThemeChange:  (t: Theme) => void;
   onOpenSettings: () => void;
 }
-
-const BADGE_CLASS: Record<MachineType, string> = {
-  ST:      'badge-st',
-  STE:     'badge-ste',
-  MegaSTE: 'badge-megaste',
-  TT:      'badge-tt',
-  Falcon:  'badge-falcon',
-};
 
 const BADGE_LABEL: Record<MachineType, string> = {
   ST:      'ST',
@@ -29,8 +28,9 @@ const BADGE_LABEL: Record<MachineType, string> = {
   Falcon:  'Falcon',
 };
 
-export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplicate, onRename, onDelete, onOpenSettings }: Props) {
+export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport, onDuplicate, onRename, onDelete, onRestore, theme, onThemeChange, onOpenSettings }: Props) {
   const [filter, setFilter]           = useState('');
+  const [importMsg, setImportMsg]   = useState('');
   const [showWizard, setShowWizard]   = useState(false);
   const [editingId, setEditingId]     = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -76,11 +76,8 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-icon">
-              <svg viewBox="0 0 100 100" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
-                <rect x="42" y="8"  width="16" height="52" rx="8" fill="#fff"/>
-                <rect x="12" y="28" width="16" height="36" rx="8" fill="#fff"/>
-                <rect x="72" y="28" width="16" height="36" rx="8" fill="#fff"/>
-                <rect x="12" y="60" width="76" height="16" rx="8" fill="#fff"/>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2.5 19.5 C8 15.5 9.5 9 11 6 H13 C14.5 9 16 15.5 21.5 19.5 Z" />
               </svg>
             </div>
             FujiNext™
@@ -112,9 +109,7 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               onContextMenu={e => handleContextMenu(e, p)}
               title="Double-click to rename · Right-click for options"
             >
-              <span className={`machine-badge ${BADGE_CLASS[p.machine]}`}>
-                {BADGE_LABEL[p.machine]}
-              </span>
+              <div className="profile-row">
               {editingId === p.id ? (
                 <input
                   className="profile-name-input"
@@ -131,12 +126,30 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               ) : (
                 <span className="profile-name">{p.name}</span>
               )}
+              <span className="machine-pill">{BADGE_LABEL[p.machine]}</span>
+              </div>
+              <div className="profile-spec">{profileSpec(p)}</div>
             </div>
           ))}
         </div>
 
         {/* Footer */}
         <div className="sidebar-footer">
+          <div className="look-switch" role="radiogroup" aria-label="Look">
+            <span className="look-label">Look</span>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={theme === t.id}
+                className={`look-opt ${theme === t.id ? 'sel' : ''}`}
+                onClick={() => onThemeChange(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="btn-new" onClick={() => setShowWizard(true)} style={{ flex: 1 }}>
               + New profile
@@ -145,6 +158,18 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               ⚙
             </button>
           </div>
+          <button
+            className="btn-new"
+            style={{ width: '100%', marginTop: 6 }}
+            title="Create a profile from an existing Hatari .cfg file"
+            onClick={async () => {
+              const msg = await onImport();
+              if (msg) { setImportMsg(msg); setTimeout(() => setImportMsg(''), 12000); }
+            }}
+          >
+            Import .cfg file…
+          </button>
+          {importMsg && <div className="field-hint" style={{ marginTop: 6 }} role="status">{importMsg}</div>}
           <div className="sidebar-copyright">
             <div className="copyright-name">FujiNext™ <span className="copyright-version">v1.0</span></div>
             <div className="copyright-owner">© 2025 Jeff Warz</div>
@@ -177,6 +202,12 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onDuplica
               onDuplicate(contextMenu.id);
               closeContextMenu();
             }}>Duplicate</div>
+            {DEMO_PROFILE_IDS.includes(contextMenu.id) && (
+              <div className="context-item" onClick={() => {
+                onRestore(contextMenu.id);
+                closeContextMenu();
+              }}>Restore original setup</div>
+            )}
             <div className="context-divider" />
             <div className="context-item danger" onClick={() => {
               onDelete(contextMenu.id);

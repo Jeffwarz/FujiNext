@@ -16,6 +16,7 @@ fn main() {
             commands::load_settings,
             commands::detect_hatari,
             commands::scan_rom_folder,
+            commands::read_text_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running FujiNext™");

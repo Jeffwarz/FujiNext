@@ -123,6 +123,21 @@ pub fn load_profiles(app: tauri::AppHandle) -> Result<Vec<serde_json::Value>, St
     Ok(profiles)
 }
 
+/// Read a small text file the user picked (used to import Hatari .cfg files).
+#[tauri::command]
+pub fn read_text_file(path: String) -> Result<String, String> {
+    const MAX_BYTES: u64 = 1024 * 1024;
+    let meta = std::fs::metadata(&path).map_err(|e| format!("Cannot open {path}: {e}"))?;
+    if !meta.is_file() {
+        return Err(format!("{path} is not a file"));
+    }
+    if meta.len() > MAX_BYTES {
+        return Err(format!("{path} is too big to be a config file"));
+    }
+    let bytes = std::fs::read(&path).map_err(|e| format!("Cannot read {path}: {e}"))?;
+    Ok(String::from_utf8_lossy(&bytes).into_owned())
+}
+
 // ── ROM folder scanning ───────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize)]

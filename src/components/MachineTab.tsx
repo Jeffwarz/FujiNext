@@ -23,6 +23,7 @@ export default function MachineTab({ profile: p, detectedRoms, romsFolder, romSc
   const tosStatus = describeTos(p, detectedRoms, { romsFolder, scanError: romScanError });
   // The ROM list is folded away while all is well; it opens by itself when it needs attention.
   const [tosOpen, setTosOpen] = useState(!tosStatus.ok);
+  const [advOpen, setAdvOpen] = useState(false);
   const ramOpts  = RAM_OPTIONS[p.machine];
   const cpuOpts  = CPU_OPTIONS[p.machine];
   const tosOpts  = TOS_ROMS.filter(t => t.machines.includes(p.machine));
@@ -102,9 +103,23 @@ export default function MachineTab({ profile: p, detectedRoms, romsFolder, romSc
         </div>
       </div>
 
-      {/* CPU type */}
-      <div className="section-label">CPU type</div>
+      {/* Advanced: CPU type and FPU, folded away until needed */}
+      <div className="section-label">Advanced</div>
       <div className="card">
+        <button
+          type="button"
+          className="fold-toggle"
+          aria-expanded={advOpen}
+          onClick={() => setAdvOpen(open => !open)}
+        >
+          <span className="fold-chevron">{advOpen ? '▾' : '▸'}</span>
+          {advOpen ? 'Hide CPU type and FPU' : 'CPU type and FPU'}
+          {!advOpen && <span className="fold-count">{p.cpuType} · FPU {p.fpu === 'none' ? 'off' : p.fpu}</span>}
+        </button>
+        {advOpen && (
+          <div className="fold-body">
+      <div className="rom-group-label">CPU type</div>
+        <div>
         <div className="cpu-grid">
           {CPU_TYPE_OPTIONS.map(o => {
             const isReal = o.realFor.includes(p.machine);
@@ -128,9 +143,8 @@ export default function MachineTab({ profile: p, detectedRoms, romsFolder, romSc
         </div>
       </div>
 
-      {/* FPU */}
-      <div className="section-label">FPU</div>
-      <div className="card">
+      <div className="rom-group-label" style={{ marginTop: 12 }}>FPU</div>
+        <div>
         <div className="cpu-grid">
           {FPU_OPTIONS.map(o => (
             <div
@@ -143,6 +157,10 @@ export default function MachineTab({ profile: p, detectedRoms, romsFolder, romSc
             </div>
           ))}
         </div>
+      </div>
+
+          </div>
+        )}
       </div>
 
       {/* ST RAM */}
