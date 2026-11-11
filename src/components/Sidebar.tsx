@@ -76,11 +76,8 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport,
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-icon">
-              <svg viewBox="0 0 100 100" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
-                <rect x="42" y="8"  width="16" height="52" rx="8" fill="#fff"/>
-                <rect x="12" y="28" width="16" height="36" rx="8" fill="#fff"/>
-                <rect x="72" y="28" width="16" height="36" rx="8" fill="#fff"/>
-                <rect x="12" y="60" width="76" height="16" rx="8" fill="#fff"/>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2.5 19.5 C8 15.5 9.5 9 11 6 H13 C14.5 9 16 15.5 21.5 19.5 Z" />
               </svg>
             </div>
             FujiNext™
