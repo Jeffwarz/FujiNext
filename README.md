@@ -61,7 +61,7 @@ npm test
 
 ## Legal
 
-FujiNext is released under the [MIT License](LICENSE). Copyright (c) 2025 Jeff Warz. FujiNext™ is a trademark of Jeff Warz.
+FujiNext is released under the [MIT License](LICENSE). Copyright (c) 2026 Jeffwarz. FujiNext™ is a trademark of Jeffwarz.
 
 FujiNext™ is an independent open source project and is not affiliated with, endorsed by, or
 associated with the Hatari development team or its contributors. Hatari is a separate open source

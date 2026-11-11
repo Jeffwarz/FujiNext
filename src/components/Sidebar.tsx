@@ -172,7 +172,7 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport,
           {importMsg && <div className="field-hint" style={{ marginTop: 6 }} role="status">{importMsg}</div>}
           <div className="sidebar-copyright">
             <div className="copyright-name">FujiNext™ <span className="copyright-version">v1.0</span></div>
-            <div className="copyright-owner">© 2025 Jeff Warz</div>
+            <div className="copyright-owner">Copyright (c) 2026 Jeffwarz</div>
             <div className="copyright-disclaimer">
               Not affiliated with the Hatari project or any holder of the Atari name or trademark.
               All machine names referenced for compatibility purposes only.

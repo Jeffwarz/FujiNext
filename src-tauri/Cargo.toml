@@ -2,7 +2,7 @@
 name = "fujinext"
 version = "1.0.0"
 description = "FujiNext™ — The Hatari Frontend"
-authors = ["Jeff Warz"]
+authors = ["Jeffwarz"]
 license = "MIT"
 edition = "2021"
 
