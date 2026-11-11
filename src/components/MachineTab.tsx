@@ -1,13 +1,17 @@
+import { useState } from 'react';
 import {
   Profile, MachineType, CpuType, DetectedRom,
   RAM_OPTIONS, CPU_OPTIONS, CPU_TYPE_OPTIONS, FPU_OPTIONS, TOS_ROMS, TTRAM_OPTIONS,
   HW_MAX_LABEL, isExtendedRam,
 } from '../types/profile';
 import { pickFile, ROM_FILTERS } from '../hooks/useFilePicker';
+import { normalizeTosLabel, describeTos } from '../hatari/tos';
 
 interface Props {
   profile:       Profile;
   detectedRoms:  DetectedRom[];
+  romsFolder:    string;
+  romScanError:  string;
   onChange:      (p: Profile) => void;
 }
 
@@ -15,7 +19,10 @@ function set<K extends keyof Profile>(p: Profile, key: K, val: Profile[K]): Prof
   return { ...p, [key]: val };
 }
 
-export default function MachineTab({ profile: p, detectedRoms, onChange }: Props) {
+export default function MachineTab({ profile: p, detectedRoms, romsFolder, romScanError, onChange }: Props) {
+  const tosStatus = describeTos(p, detectedRoms, { romsFolder, scanError: romScanError });
+  // The ROM list is folded away while all is well; it opens by itself when it needs attention.
+  const [tosOpen, setTosOpen] = useState(!tosStatus.ok);
   const ramOpts  = RAM_OPTIONS[p.machine];
   const cpuOpts  = CPU_OPTIONS[p.machine];
   const tosOpts  = TOS_ROMS.filter(t => t.machines.includes(p.machine));
@@ -194,6 +201,27 @@ export default function MachineTab({ profile: p, detectedRoms, onChange }: Props
       <div className="section-label">TOS ROM</div>
       <div className="card">
 
+        {/* What Hatari will actually be given, and why if it isn't the chosen ROM */}
+        <div className={`rom-status ${tosStatus.ok ? 'ok' : 'warn'}`}>
+          {tosStatus.ok ? '✓' : '⚠'} {tosStatus.text}
+        </div>
+
+        <button
+          type="button"
+          className="fold-toggle"
+          aria-expanded={tosOpen}
+          onClick={() => setTosOpen(open => !open)}
+        >
+          <span className="fold-chevron">{tosOpen ? '▾' : '▸'}</span>
+          {tosOpen ? 'Hide ROM choices' : 'Change ROM'}
+          {!tosOpen && relevantDetected.length > 0 && (
+            <span className="fold-count">{relevantDetected.length} detected</span>
+          )}
+        </button>
+
+        {tosOpen && (
+        <div className="fold-body">
+
         {/* Detected ROMs from the configured ROMs folder */}
         {relevantDetected.length > 0 && (
           <>
@@ -230,7 +258,7 @@ export default function MachineTab({ profile: p, detectedRoms, onChange }: Props
           {tosOpts.map(t => (
             <div
               key={t.ver}
-              className={`tos-item ${p.tos === t.ver && !p.tosPath ? 'sel' : ''}`}
+              className={`tos-item ${normalizeTosLabel(p.tos) === normalizeTosLabel(t.ver) && !p.tosPath ? 'sel' : ''}`}
               onClick={() => onChange({ ...p, tos: t.ver, tosPath: '' })}
             >
               <div className="tos-flag">{t.flag}</div>
@@ -261,6 +289,9 @@ export default function MachineTab({ profile: p, detectedRoms, onChange }: Props
             </button>
           )}
         </div>
+
+        </div>
+        )}
       </div>
 
       {/* Features */}

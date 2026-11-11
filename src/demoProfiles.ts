@@ -1,4 +1,4 @@
-import { Profile } from './types/profile';
+import { Profile, defaultJoysticks } from './types/profile';
 
 // The five default demo profiles that ship with FujiNext™.
 // IDs 1-5 are reserved for these and should never be used for user profiles.
@@ -15,6 +15,8 @@ export const DEMO_PROFILES: Profile[] = [
     blitter: false, rtc: false, dsp: false, timerD: true,
     fullscreen: false, borders: true, doublePixels: true, aspectRatio: true,
     sound: true, soundFreq: '44100', last: 'never', createdAt: 1,
+    joysticks: defaultJoysticks(), printer: { enabled: false, file: '' },
+    rs232: { enabled: false, inFile: '', outFile: '' }, midi: { enabled: false, inFile: '', outFile: '' },
   },
   {
     id: 2, name: 'Mega STE Office', notes: '',
@@ -26,6 +28,8 @@ export const DEMO_PROFILES: Profile[] = [
     blitter: true, rtc: true, dsp: false, timerD: true,
     fullscreen: false, borders: true, doublePixels: true, aspectRatio: true,
     sound: true, soundFreq: '44100', last: 'never', createdAt: 2,
+    joysticks: defaultJoysticks(), printer: { enabled: false, file: '' },
+    rs232: { enabled: false, inFile: '', outFile: '' }, midi: { enabled: false, inFile: '', outFile: '' },
   },
   {
     id: 3, name: 'Falcon Dev', notes: 'DSP development setup',
@@ -37,6 +41,8 @@ export const DEMO_PROFILES: Profile[] = [
     blitter: false, rtc: true, dsp: true, timerD: true,
     fullscreen: false, borders: true, doublePixels: false, aspectRatio: true,
     sound: true, soundFreq: '44100', last: 'never', createdAt: 3,
+    joysticks: defaultJoysticks(), printer: { enabled: false, file: '' },
+    rs232: { enabled: false, inFile: '', outFile: '' }, midi: { enabled: false, inFile: '', outFile: '' },
   },
   {
     id: 4, name: 'TT Max', notes: '',
@@ -48,6 +54,8 @@ export const DEMO_PROFILES: Profile[] = [
     blitter: false, rtc: true, dsp: false, timerD: true,
     fullscreen: false, borders: false, doublePixels: false, aspectRatio: true,
     sound: false, soundFreq: '44100', last: 'never', createdAt: 4,
+    joysticks: defaultJoysticks(), printer: { enabled: false, file: '' },
+    rs232: { enabled: false, inFile: '', outFile: '' }, midi: { enabled: false, inFile: '', outFile: '' },
   },
   {
     id: 5, name: 'Upgraded STE', notes: 'Demos and music',
@@ -59,6 +67,8 @@ export const DEMO_PROFILES: Profile[] = [
     blitter: true, rtc: false, dsp: false, timerD: true,
     fullscreen: false, borders: true, doublePixels: true, aspectRatio: true,
     sound: true, soundFreq: '44100', last: 'never', createdAt: 5,
+    joysticks: defaultJoysticks(), printer: { enabled: false, file: '' },
+    rs232: { enabled: false, inFile: '', outFile: '' }, midi: { enabled: false, inFile: '', outFile: '' },
   },
 ];
 

@@ -33,6 +33,29 @@ export interface DriveConfig {
   gemdos: string;
 }
 
+export type JoystickMode = 'off' | 'real' | 'keyboard';
+
+export interface JoystickPort {
+  mode:        JoystickMode;
+  realId:      number;     // which connected game controller (0 = first)
+  autoFire:    boolean;
+  jumpOnFire2: boolean;    // second button acts as "up"
+}
+
+/** Hatari's six joystick ports, in its own order. */
+export const JOYSTICK_PORTS: { name: string; note: string; stOnly?: boolean; notSt?: boolean }[] = [
+  { name: 'ST joystick 0',         note: 'Port 0 (usually the mouse port)', },
+  { name: 'ST joystick 1',         note: 'Port 1, the main joystick port', },
+  { name: 'STE joypad A',          note: 'Extra STE/Falcon joypad port', notSt: true },
+  { name: 'STE joypad B',          note: 'Extra STE/Falcon joypad port', notSt: true },
+  { name: 'Parallel port stick 1', note: 'Via a parallel-port adapter', },
+  { name: 'Parallel port stick 2', note: 'Via a parallel-port adapter', },
+];
+
+export interface PrinterConfig { enabled: boolean; file: string }
+export interface Rs232Config   { enabled: boolean; inFile: string; outFile: string }
+export interface MidiConfig    { enabled: boolean; inFile: string; outFile: string }
+
 export interface Profile {
   id:        number;
   name:      string;
@@ -63,6 +86,11 @@ export interface Profile {
   // sound
   sound:      boolean;
   soundFreq:  SoundFreq;
+  // joysticks and devices
+  joysticks:  JoystickPort[];   // always 6, in Hatari's order
+  printer:    PrinterConfig;
+  rs232:      Rs232Config;
+  midi:       MidiConfig;
   // meta
   last:       string;
   createdAt:  number;
@@ -186,7 +214,7 @@ export const TOS_ROMS = [
   { ver: 'TOS 2.06',    machines: ['ST', 'STE', 'MegaSTE'] as MachineType[],           year: '1992', flag: '🇬🇧', note: 'Final 16-bit TOS'                  },
   { ver: 'TOS 3.06',    machines: ['TT'] as MachineType[],                             year: '1992', flag: '🇬🇧', note: 'TT TOS — required'                 },
   { ver: 'TOS 4.04',    machines: ['Falcon'] as MachineType[],                         year: '1993', flag: '🇬🇧', note: 'Falcon TOS — recommended'          },
-  { ver: 'EmuTOS 1.2',  machines: ['ST','STE','MegaSTE','TT','Falcon'] as MachineType[], year: '2022', flag: '🆓', note: 'Open source — all machines'       },
+  { ver: 'EmuTOS',      machines: ['ST','STE','MegaSTE','TT','Falcon'] as MachineType[], year: 'free', flag: '🆓', note: 'Open source — all machines. Version depends on your Hatari or ROM file' },
 ];
 
 export const TTRAM_OPTIONS: TtRamSize[] = [
@@ -244,7 +272,30 @@ export function makeDefaultProfile(id: number): Profile {
     aspectRatio:  true,
     sound:        true,
     soundFreq:    '44100',
+    joysticks:    defaultJoysticks(),
+    printer:      { enabled: false, file: '' },
+    rs232:        { enabled: false, inFile: '', outFile: '' },
+    midi:         { enabled: false, inFile: '', outFile: '' },
     last:         'never',
     createdAt:    Date.now(),
+  };
+}
+
+export function defaultJoysticks(): JoystickPort[] {
+  return Array.from({ length: 6 }, (_, i) => ({
+    mode: i === 1 ? 'real' as JoystickMode : 'off' as JoystickMode,
+    realId: 0, autoFire: false, jumpOnFire2: i !== 1,
+  }));
+}
+
+/** Fill in anything a profile saved by an older version does not have. */
+export function normalizeProfile(saved: Partial<Profile>): Profile {
+  const base = makeDefaultProfile(saved.id ?? Date.now());
+  const joysticks = base.joysticks.map((d, i) => ({ ...d, ...(saved.joysticks?.[i] ?? {}) }));
+  return {
+    ...base, ...saved, joysticks,
+    printer: { ...base.printer, ...saved.printer },
+    rs232:   { ...base.rs232,   ...saved.rs232 },
+    midi:    { ...base.midi,    ...saved.midi },
   };
 }
