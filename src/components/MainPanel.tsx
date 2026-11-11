@@ -7,6 +7,8 @@ import MachineTab  from './MachineTab';
 import StorageTab  from './StorageTab';
 import DisplayTab  from './DisplayTab';
 import SoundTab    from './SoundTab';
+import JoysticksTab from './JoysticksTab';
+import DevicesTab  from './DevicesTab';
 
 interface Props {
   profile:       Profile;
@@ -19,13 +21,15 @@ interface Props {
   onDelete:      () => void;
 }
 
-type Tab = 'machine' | 'storage' | 'display' | 'sound';
+type Tab = 'machine' | 'storage' | 'display' | 'sound' | 'joysticks' | 'devices';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'machine', label: 'Machine' },
   { id: 'storage', label: 'Storage' },
   { id: 'display', label: 'Display' },
   { id: 'sound',   label: 'Sound'   },
+  { id: 'joysticks', label: 'Joysticks' },
+  { id: 'devices',   label: 'Devices'   },
 ];
 
 export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolder, romScanError, onChange, onDuplicate, onDelete }: Props) {
@@ -119,6 +123,18 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolde
         )}
         {activeTab === 'sound' && (
           <SoundTab
+            profile={profile}
+            onChange={p => { onChange(p); flash('Profile updated'); }}
+          />
+        )}
+        {activeTab === 'joysticks' && (
+          <JoysticksTab
+            profile={profile}
+            onChange={p => { onChange(p); flash('Profile updated'); }}
+          />
+        )}
+        {activeTab === 'devices' && (
+          <DevicesTab
             profile={profile}
             onChange={p => { onChange(p); flash('Profile updated'); }}
           />

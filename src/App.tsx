@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Profile, AppSettings, DetectedRom } from './types/profile';
+import { Profile, AppSettings, DetectedRom, normalizeProfile } from './types/profile';
 import { DEMO_PROFILES, resetDemoProfiles } from './demoProfiles';
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
@@ -43,7 +43,7 @@ export default function App() {
       try {
         const saved = await invoke<Profile[]>('load_profiles');
         if (saved && saved.length > 0) {
-          setProfiles(saved);
+          setProfiles(saved.map(normalizeProfile));
           setActiveId(saved[0].id);
         }
       } catch {}

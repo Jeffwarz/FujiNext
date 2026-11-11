@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import hatariKeys from './hatariKeys.json';
 import { toHatariCfg, parseHatariCfg } from './config';
 import { DEMO_PROFILES } from '../demoProfiles';
-import { makeDefaultProfile, RAM_ORDER, TTRAM_OPTIONS } from '../types/profile';
+import { makeDefaultProfile, normalizeProfile, RAM_ORDER, TTRAM_OPTIONS } from '../types/profile';
 import type { Profile, MachineType, FpuType, MonitorType } from '../types/profile';
 
 // Hatari's real keys and their value types, extracted from its source by
@@ -193,5 +193,58 @@ describe('parseHatariCfg', () => {
 
   it('copes with Windows line endings', () => {
     expect(parseHatariCfg('[System]\r\nnModelType = 5\r\n').machine).toBe('Falcon');
+  });
+});
+
+describe('joysticks and devices', () => {
+  const base = () => makeDefaultProfile(900);
+  const sec = (cfg: string, name: string) =>
+    Object.fromEntries(entries(cfg).filter(e => e.section === name).map(e => [e.key, e.value]));
+
+  it('writes all six joystick ports with Hatari mode codes', () => {
+    const p = base();
+    p.joysticks[0] = { mode: 'keyboard', realId: 0, autoFire: true, jumpOnFire2: false };
+    p.joysticks[1] = { mode: 'real', realId: 2, autoFire: false, jumpOnFire2: true };
+    const cfg = toHatariCfg(p);
+    expect(sec(cfg, 'Joystick0')).toMatchObject({ nJoystickMode: '2', bEnableAutoFire: 'TRUE', bEnableJumpOnFire2: 'FALSE' });
+    expect(sec(cfg, 'Joystick1')).toMatchObject({ nJoystickMode: '1', nJoyId: '2' });
+    for (let i = 2; i < 6; i++) expect(sec(cfg, `Joystick${i}`).nJoystickMode).toBe('0');
+  });
+
+  it('writes printer, RS232 and MIDI switches and files', () => {
+    const p = base();
+    p.printer = { enabled: true, file: 'C:\\out\\print.txt' };
+    p.rs232 = { enabled: true, inFile: 'COM3', outFile: 'COM3' };
+    p.midi = { enabled: true, inFile: '/tmp/in.mid', outFile: '/tmp/out.mid' };
+    const cfg = toHatariCfg(p);
+    expect(sec(cfg, 'Printer')).toEqual({ bEnablePrinting: 'TRUE', szPrintToFileName: 'C:\\out\\print.txt' });
+    expect(sec(cfg, 'RS232')).toEqual({ bEnableRS232: 'TRUE', szInFileName: 'COM3', szOutFileName: 'COM3' });
+    expect(sec(cfg, 'Midi')).toEqual({ bEnableMidi: 'TRUE', sMidiInFileName: '/tmp/in.mid', sMidiOutFileName: '/tmp/out.mid' });
+  });
+
+  it('leaves file names to Hatari when blank, and everything off by default', () => {
+    const cfg = toHatariCfg(base());
+    expect(sec(cfg, 'Printer')).toEqual({ bEnablePrinting: 'FALSE' });
+    expect(sec(cfg, 'RS232')).toEqual({ bEnableRS232: 'FALSE' });
+    expect(sec(cfg, 'Midi')).toEqual({ bEnableMidi: 'FALSE' });
+  });
+
+  it('round-trips through parseHatariCfg', () => {
+    const p = base();
+    p.joysticks[3] = { mode: 'keyboard', realId: 1, autoFire: true, jumpOnFire2: false };
+    p.printer = { enabled: true, file: '/tmp/p.txt' };
+    p.midi = { enabled: true, inFile: '', outFile: '/tmp/o.mid' };
+    const back = parseHatariCfg(toHatariCfg(p));
+    expect(back.joysticks).toEqual(p.joysticks);
+    expect(back.printer).toEqual(p.printer);
+    expect(back.midi).toEqual(p.midi);
+  });
+
+  it('upgrades profiles saved before these settings existed', () => {
+    const { joysticks, printer, rs232, midi, ...old } = base();
+    const p = normalizeProfile(old);
+    expect(p.joysticks).toHaveLength(6);
+    expect(p.printer.enabled).toBe(false);
+    expect(() => toHatariCfg(old as Profile)).not.toThrow();
   });
 });

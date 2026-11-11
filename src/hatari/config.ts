@@ -5,8 +5,9 @@
 // tools/extract-hatari-keys.py), so a wrong key name or value type fails the
 // tests instead of being silently ignored by Hatari.
 
+import { normalizeProfile } from '../types/profile';
 import type {
-  Profile, MachineType, CpuType, FpuType, MonitorType, StRamSize, TtRamSize, SoundFreq,
+  JoystickMode, Profile, MachineType, CpuType, FpuType, MonitorType, StRamSize, TtRamSize, SoundFreq,
 } from '../types/profile';
 
 // ── Value tables (Hatari's own numeric codes) ────────────────────────────────
@@ -36,6 +37,9 @@ const TT_RAM_KB: Record<TtRamSize, number> = {
   '4 MiB': 4096, '8 MiB': 8192, '16 MiB': 16384, '32 MiB': 32768, '64 MiB': 65536,
   '128 MiB': 131072, '256 MiB': 262144, '512 MiB': 524288, '1024 MiB': 1048576,
 };
+
+// JOYSTICKMODE in Hatari's configuration.h; the section is [Joystick<port>].
+const JOY_MODE_CODE: Record<JoystickMode, number> = { off: 0, real: 1, keyboard: 2 };
 
 const DSP_NONE = 0;
 const DSP_FULL = 2;   // DSP_TYPE_EMU; "dummy" (1) is not offered in the UI
@@ -75,7 +79,8 @@ function deviceLines(images: { id: number; img: string }[], count: number): Line
  * Hatari's defaults. The file is meant to be passed with --configfile, so the
  * user's own Hatari configuration is never touched.
  */
-export function toHatariCfg(p: Profile): string {
+export function toHatariCfg(input: Profile): string {
+  const p = normalizeProfile(input);
   const gemdos = text(p.drives.gemdos);
   const tosPath = text(p.tosPath);
 
@@ -130,6 +135,26 @@ export function toHatariCfg(p: Profile): string {
     ...render('IDE', deviceLines(p.drives.ide, 2)),
     ...render('ROM', rom),
     ...render('System', system),
+    ...p.joysticks.flatMap((j, port) => render(`Joystick${port}`, [
+      ['nJoystickMode', JOY_MODE_CODE[j.mode] ?? 0],
+      ['nJoyId', Math.max(0, Math.trunc(j.realId) || 0)],
+      ['bEnableAutoFire', j.autoFire],
+      ['bEnableJumpOnFire2', j.jumpOnFire2],
+    ])),
+    ...render('Printer', [
+      ['bEnablePrinting', p.printer.enabled],
+      ...(text(p.printer.file) ? [['szPrintToFileName', p.printer.file] as Line] : []),
+    ]),
+    ...render('RS232', [
+      ['bEnableRS232', p.rs232.enabled],
+      ...(text(p.rs232.inFile) ? [['szInFileName', p.rs232.inFile] as Line] : []),
+      ...(text(p.rs232.outFile) ? [['szOutFileName', p.rs232.outFile] as Line] : []),
+    ]),
+    ...render('Midi', [
+      ['bEnableMidi', p.midi.enabled],
+      ...(text(p.midi.inFile) ? [['sMidiInFileName', p.midi.inFile] as Line] : []),
+      ...(text(p.midi.outFile) ? [['sMidiOutFileName', p.midi.outFile] as Line] : []),
+    ]),
   ].join('\n');
 }
 
@@ -237,6 +262,33 @@ export function parseHatariCfg(input: string): Partial<Profile> {
     Array.from({ length: count }, (_, id) => ({ id, img: get(section, `sDeviceFile${id}`) ?? '' }))
       .filter((d, id) => d.img !== '' && bool(get(section, `bUseDevice${id}`)) !== false);
   const gemdos = bool(get('HardDisk', 'bUseHardDiskDirectory')) === false ? '' : (get('HardDisk', 'szHardDiskDirectory') ?? '');
+  const base = normalizeProfile({});
+  const joysticks = base.joysticks.map((d, port) => {
+    const sec = `Joystick${port}`;
+    const mode = invert(JOY_MODE_CODE).get(num(get(sec, 'nJoystickMode')) ?? -1) ?? d.mode;
+    return {
+      mode,
+      realId: Math.max(0, num(get(sec, 'nJoyId')) ?? d.realId),
+      autoFire: bool(get(sec, 'bEnableAutoFire')) ?? d.autoFire,
+      jumpOnFire2: bool(get(sec, 'bEnableJumpOnFire2')) ?? d.jumpOnFire2,
+    };
+  });
+  if (s.has('Joystick0') || s.has('Joystick1')) out.joysticks = joysticks;
+  out.printer = {
+    enabled: bool(get('Printer', 'bEnablePrinting')) ?? false,
+    file: get('Printer', 'szPrintToFileName') ?? '',
+  };
+  out.rs232 = {
+    enabled: bool(get('RS232', 'bEnableRS232')) ?? false,
+    inFile: get('RS232', 'szInFileName') ?? '',
+    outFile: get('RS232', 'szOutFileName') ?? '',
+  };
+  out.midi = {
+    enabled: bool(get('Midi', 'bEnableMidi')) ?? false,
+    inFile: get('Midi', 'sMidiInFileName') ?? '',
+    outFile: get('Midi', 'sMidiOutFileName') ?? '',
+  };
+
   out.drives = { acsi: drives('ACSI', 8), scsi: drives('SCSI', 8), ide: drives('IDE', 2), gemdos };
 
   return out;
