@@ -87,7 +87,7 @@ export function resetDemoProfiles(current: Profile[]): Profile[] {
 
   // Rebuild with fresh demo copies + all user profiles
   return [
-    ...DEMO_PROFILES.map(p => ({ ...p, drives: { ...p.drives, acsi: [], scsi: [], ide: [] } })),
+    ...DEMO_PROFILES.map(p => ({ ...JSON.parse(JSON.stringify(p)), drives: { ...p.drives, acsi: [], scsi: [], ide: [] } })),
     ...userProfiles,
   ];
 }
