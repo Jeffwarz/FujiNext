@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Profile, DetectedRom } from '../types/profile';
 import { toHatariCfg } from '../hatari/config';
 import { resolveTos, describeTos } from '../hatari/tos';
+import { summaryTiles } from '../profileSummary';
 import MachineTab  from './MachineTab';
 import StorageTab  from './StorageTab';
 import DisplayTab  from './DisplayTab';
@@ -44,6 +45,8 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolde
     resetTimer.current = setTimeout(() => setStatus('Ready'), ms);
   }
 
+  const romStatus = describeTos(profile, detectedRoms, { romsFolder, scanError: romScanError });
+
   async function handleLaunch() {
     flash(`Launching ${profile.name}…`);
     // A version label like "TOS 4.04" is matched to a real file in the ROMs
@@ -71,16 +74,39 @@ export default function MainPanel({ profile, hatariPath, detectedRoms, romsFolde
 
   return (
     <div className="main-panel">
-      {/* Toolbar */}
-      <div className="toolbar">
-        <div className="toolbar-left">
-          <span className="profile-title">{profile.name}</span>
-          <span className="profile-last">Last run: {profile.last}</span>
+      {/* Overview: what this profile is, whether it is ready, and Launch */}
+      <div className="hero">
+        <div className="hero-top">
+          <div>
+            <div className="hero-title">{profile.name}</div>
+            {profile.notes && <div className="hero-notes">{profile.notes}</div>}
+            <div className={`hero-status ${romStatus.ok ? '' : 'warn'}`}>
+              {romStatus.ok ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12.5 L9.5 18 L20 6.5" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4 L22 20 H2 Z M12 10 V14 M12 17 V17.5" /></svg>
+              )}
+              <span>{romStatus.ok ? `Ready. ${romStatus.text}` : romStatus.text}</span>
+            </div>
+            <div className="hero-last">Last run: {profile.last}</div>
+          </div>
+          <div className="hero-actions">
+            <button className="btn" onClick={onDuplicate}>Duplicate</button>
+            <button className="btn btn-danger" onClick={onDelete}>Delete</button>
+            <button className="btn btn-launch big" onClick={handleLaunch}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4 L20 12 L6 20 Z" /></svg>
+              Launch
+            </button>
+          </div>
         </div>
-        <div className="toolbar-right">
-          <button className="btn" onClick={onDuplicate}>Duplicate</button>
-          <button className="btn btn-danger" onClick={onDelete}>Delete</button>
-          <button className="btn btn-launch" onClick={handleLaunch}>▶ Launch</button>
+        <div className="tiles">
+          {summaryTiles(profile).map(t => (
+            <div className="tile" key={t.label}>
+              <div className="tile-label">{t.label}</div>
+              <div className="tile-value">{t.value}</div>
+              <div className="tile-note">{t.note}</div>
+            </div>
+          ))}
         </div>
       </div>
 

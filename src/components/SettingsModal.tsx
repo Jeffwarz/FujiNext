@@ -106,7 +106,7 @@ export default function SettingsModal({ settings, onSave, onClose, onResetDemos 
             <div className="toggle-row" style={{ borderBottom: 'none', padding: '4px 0' }}>
               <div>
                 <span className="toggle-label">Theme</span>
-                <div className="toggle-note">Follows system by default</div>
+                <div className="toggle-note">Choose how FujiNext looks</div>
               </div>
               <select
                 className="form-select"

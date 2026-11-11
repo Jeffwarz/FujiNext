@@ -101,6 +101,11 @@ export default function App() {
       });
   }, [settings.romsFolder]);
 
+  // The look follows the Settings choice ('dark' and 'light' are the modern looks).
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme === 'light' ? 'light' : 'dark';
+  }, [settings.theme]);
+
   const activeProfile = profiles.find(p => p.id === activeId) ?? profiles[0];
 
   function updateProfile(updated: Profile) {

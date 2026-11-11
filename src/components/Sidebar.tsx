@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Profile, MachineType, makeDefaultProfile } from '../types/profile';
 import { TOS_ROMS } from '../types/profile';
 import { DEMO_PROFILE_IDS } from '../demoProfiles';
+import { profileSpec } from '../profileSummary';
 
 interface Props {
   profiles:       Profile[];
@@ -15,14 +16,6 @@ interface Props {
   onRestore:      (id: number) => void;
   onOpenSettings: () => void;
 }
-
-const BADGE_CLASS: Record<MachineType, string> = {
-  ST:      'badge-st',
-  STE:     'badge-ste',
-  MegaSTE: 'badge-megaste',
-  TT:      'badge-tt',
-  Falcon:  'badge-falcon',
-};
 
 const BADGE_LABEL: Record<MachineType, string> = {
   ST:      'ST',
@@ -116,9 +109,7 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport,
               onContextMenu={e => handleContextMenu(e, p)}
               title="Double-click to rename · Right-click for options"
             >
-              <span className={`machine-badge ${BADGE_CLASS[p.machine]}`}>
-                {BADGE_LABEL[p.machine]}
-              </span>
+              <div className="profile-row">
               {editingId === p.id ? (
                 <input
                   className="profile-name-input"
@@ -135,6 +126,9 @@ export default function Sidebar({ profiles, activeId, onSelect, onAdd, onImport,
               ) : (
                 <span className="profile-name">{p.name}</span>
               )}
+              <span className="machine-pill">{BADGE_LABEL[p.machine]}</span>
+              </div>
+              <div className="profile-spec">{profileSpec(p)}</div>
             </div>
           ))}
         </div>

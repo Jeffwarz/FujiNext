@@ -1,0 +1,63 @@
+/* Looks for FujiNext. Every colour, font and size the app uses comes from these
+   variables, so a new look is one more block here. The look is chosen with the
+   data-theme attribute on <html>, set from Settings. */
+
+:root,
+:root[data-theme="dark"] {
+  --font-ui:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --accent:         #5fe3a8;
+  --accent-hover:   #7aeabb;
+  --accent-light:   #1d2a33;
+  --accent-contrast:#06231a;
+  --bg-primary:     #171b24;   /* cards, toolbars */
+  --bg-secondary:   #1e2330;   /* inputs, chips */
+  --bg-tertiary:    #12151c;   /* window */
+  --sidebar-bg:     #171b24;
+  --text-primary:   #e8ebf2;
+  --text-secondary: #b4bcd0;
+  --text-tertiary:  #98a2b8;
+  --border:         #262c3a;
+  --border-mid:     #343c50;
+  --bw:             1px;
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      14px;
+  --ok:             #7fe0b0;
+  --pill-bg:        #262c3a;
+  --pill-text:      #c5cce0;
+  --warn-bg:        #2a1f0a;
+  --warn-border:    #8a5a10;
+  --warn-text:      #f0b860;
+  --danger-text:    #ff8f85;
+  --danger-border:  rgba(255,143,133,0.4);
+  --danger-hover:   rgba(255,143,133,0.1);
+  --shadow-menu:    0 8px 24px rgba(0,0,0,0.45);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --accent:         #0f7a52;
+  --accent-hover:   #0b6342;
+  --accent-light:   #e3f5ec;
+  --accent-contrast:#ffffff;
+  --bg-primary:     #ffffff;
+  --bg-secondary:   #f4f6fa;
+  --bg-tertiary:    #eceff5;
+  --sidebar-bg:     #f7f8fb;
+  --text-primary:   #161a22;
+  --text-secondary: #475069;
+  --text-tertiary:  #5c667d;
+  --border:         #dde2ec;
+  --border-mid:     #c5ccdb;
+  --ok:             #0f7a52;
+  --pill-bg:        #e6eaf2;
+  --pill-text:      #384157;
+  --warn-bg:        #fef3e2;
+  --warn-border:    #f5a623;
+  --warn-text:      #7a4a00;
+  --danger-text:    #b3261e;
+  --danger-border:  rgba(179,38,30,0.35);
+  --danger-hover:   rgba(179,38,30,0.07);
+  --shadow-menu:    0 8px 24px rgba(20,30,50,0.18);
+  color-scheme: light;
+}
