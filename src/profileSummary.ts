@@ -4,10 +4,6 @@
 import { RAM_OPTIONS } from './types/profile';
 import type { Profile } from './types/profile';
 
-export const MACHINE_NAME: Record<Profile['machine'], string> = {
-  ST: 'ST', STE: 'STE', MegaSTE: 'Mega STE', TT: 'TT', Falcon: 'Falcon',
-};
-
 const ramLabel = (p: Profile): string =>
   RAM_OPTIONS[p.machine].find(o => o.v === p.ram)?.label ?? p.ram;
 
